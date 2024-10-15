@@ -52,17 +52,25 @@ public class PlayerControllerEditor : Editor
         serializedObject.Update();
 
         EditorGUILayout.PropertyField(_pBody);
-        EditorGUILayout.Space();
+        if (_pBody.objectReferenceValue == null)
+        {
+            EditorGUILayout.HelpBox("Warning! Make sure the Player Controller has a Rigidbody attached to the same object or is put here.", MessageType.Warning);
+        }
+        EditorGUILayout.Separator();
+
         _showMovementInfo = EditorGUILayout.BeginFoldoutHeaderGroup(_showMovementInfo, "Movement Settings");
         if (_showMovementInfo)
         {
             EditorGUI.indentLevel++;
             _player.speed    = EditorGUILayout.FloatField("Player Speed", _player.speed);
             _player.maxSpeed = EditorGUILayout.FloatField("Max Speed", _player.maxSpeed);
+            
+            EditorGUILayout.Separator();
             EditorGUILayout.PropertyField(_pCanJump);
             if (_pCanJump.boolValue)
             {
                 EditorGUI.indentLevel++;
+                _player.jumpStrength = EditorGUILayout.FloatField("Jump Strength", _player.jumpStrength);
                 EditorGUILayout.PropertyField(_pGroundRayDistance);
                 EditorGUILayout.PropertyField(_pGroundLayer);
                 if (_pGroundLayer.intValue == 0)
@@ -74,6 +82,7 @@ public class PlayerControllerEditor : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
+        EditorGUILayout.Separator();
 
         _showDebugControls = EditorGUILayout.BeginFoldoutHeaderGroup(_showDebugControls, "Debug Settings");
         if (_showDebugControls)
@@ -86,6 +95,7 @@ public class PlayerControllerEditor : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
+        EditorGUILayout.Separator();
 
         _showDebugInfo = EditorGUILayout.BeginFoldoutHeaderGroup(_showDebugInfo, "Debug Info");
         if (_showDebugInfo)

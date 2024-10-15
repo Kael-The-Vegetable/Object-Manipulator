@@ -8,21 +8,26 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     #region General Variables
-    [SerializeField] private Rigidbody _body;
+    [SerializeField] 
+    private Rigidbody _body;
     [SerializeField][ReadOnly] private bool _isLinked = false;
     #endregion
 
     #region Movement Variables
+    // movement
     [SerializeField][ReadOnly] private Vector2 _moveDir;
     [SerializeField][ReadOnly] private Vector3 _trueMoveDir;
+    [Min(0)] public float speed;
+    [Min(0)] public float maxSpeed;
 
+    // jump detection
     [SerializeField] private bool _canJump = true;
     [SerializeField][ReadOnly] private bool _isGrounded = false;
     [SerializeField] private float _groundRayDistance;
     [SerializeField] private LayerMask _groundLayer;
+    [Min(0)] public float jumpStrength;
 
-    [Min(0)] public float speed;
-    [Min(0)] public float maxSpeed;
+    
     #endregion
 
     #region Debug Variables
@@ -69,6 +74,7 @@ public class PlayerController : MonoBehaviour
                 {
                     GameManager.Instance.PlayerInput.actions["Move"].performed += OnMove;
                     GameManager.Instance.PlayerInput.actions["Move"].canceled  += OnMove;
+                    GameManager.Instance.PlayerInput.actions["Jump"].performed += OnJump;
                     _isLinked = true;
                 }
                 catch (Exception e)
@@ -91,6 +97,7 @@ public class PlayerController : MonoBehaviour
         {
             GameManager.Instance.PlayerInput.actions["Move"].performed -= OnMove;
             GameManager.Instance.PlayerInput.actions["Move"].canceled  -= OnMove;
+            GameManager.Instance.PlayerInput.actions["Jump"].performed -= OnJump;
         }
         _isLinked = false;
     }
@@ -104,12 +111,24 @@ public class PlayerController : MonoBehaviour
         }
 
         _trueMoveDir = transform.forward * _moveDir.y + transform.right * _moveDir.x;
-        _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
+
+        if (_body.velocity.magnitude < maxSpeed)
+        {
+            _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
+        }
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
     {
         _moveDir = ctx.ReadValue<Vector2>();
+    }
+
+    public void OnJump(InputAction.CallbackContext ctx)
+    {
+        if (_isGrounded)
+        {
+            _body.AddForce(transform.up * jumpStrength, ForceMode.Impulse);
+        }
     }
 
     private void OnDrawGizmos()

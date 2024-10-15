@@ -472,7 +472,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1554667219}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: f2786f1dccdc10543863bba5cf7d871c, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
@@ -570,14 +570,15 @@ MonoBehaviour:
   _isLinked: 0
   _moveDir: {x: 0, y: 0}
   _trueMoveDir: {x: 0, y: 0, z: 0}
+  speed: 50
+  maxSpeed: 8
   _canJump: 1
   _isGrounded: 0
   _groundRayDistance: 1.3
   _groundLayer:
     serializedVersion: 2
     m_Bits: 8
-  speed: 25
-  maxSpeed: 6
+  jumpStrength: 10
   _showGroundRay: 1
 --- !u!54 &1554667225
 Rigidbody:
@@ -835,7 +836,7 @@ MeshCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2141341050}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: da9e6a2925d9efd4e8457442dea86345, type: 2}
   m_IncludeLayers:
     serializedVersion: 2
     m_Bits: 0
