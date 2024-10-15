@@ -14,8 +14,19 @@ public class PlayerController : MonoBehaviour
 
     #region Movement Variables
     [SerializeField][ReadOnly] private Vector2 _moveDir;
+    [SerializeField][ReadOnly] private Vector3 _trueMoveDir;
+
+    [SerializeField] private bool _canJump = true;
+    [SerializeField][ReadOnly] private bool _isGrounded = false;
+    [SerializeField] private float _groundRayDistance;
+    [SerializeField] private LayerMask _groundLayer;
+
     [Min(0)] public float speed;
     [Min(0)] public float maxSpeed;
+    #endregion
+
+    #region Debug Variables
+    [SerializeField] private bool _showGroundRay;
     #endregion
 
     private void Awake()
@@ -87,14 +98,26 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        Vector3 trueMoveDir = transform.forward * _moveDir.y + transform.right * _moveDir.x;
-        Debug.Log(trueMoveDir);
-        Debug.Log(trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
-        _body.AddForce(trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
+        if (_canJump)
+        {
+            _isGrounded = Physics.Raycast(transform.position, -transform.up, _groundRayDistance, _groundLayer);
+        }
+
+        _trueMoveDir = transform.forward * _moveDir.y + transform.right * _moveDir.x;
+        _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
     {
         _moveDir = ctx.ReadValue<Vector2>();
+    }
+
+    private void OnDrawGizmos()
+    {
+        if (_showGroundRay && _canJump)
+        {
+            Gizmos.color = Color.blue;
+            Gizmos.DrawRay(transform.position, -transform.up * _groundRayDistance);
+        }
     }
 }
