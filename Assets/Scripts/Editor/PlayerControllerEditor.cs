@@ -8,9 +8,9 @@ public class PlayerControllerEditor : Editor
 {
     private PlayerController _player;
 
-    private bool _showDebugInfo = false;
-    private bool _showMovementInfo = false;
-
+    private bool _showMovementInfo = true;
+    private bool _showDebugInfo = true;
+    
     #region Serialized Properties
     private SerializedProperty _pBody;
     private SerializedProperty _pLinked;
@@ -34,8 +34,8 @@ public class PlayerControllerEditor : Editor
         if (_showMovementInfo)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.FloatField("Player Speed", _player.speed);
-            EditorGUILayout.FloatField("Max Units Per Second", _player.maxSpeed);
+            _player.speed    = EditorGUILayout.FloatField("Player Speed", _player.speed);
+            _player.maxSpeed = EditorGUILayout.FloatField("Max Speed", _player.maxSpeed);
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();

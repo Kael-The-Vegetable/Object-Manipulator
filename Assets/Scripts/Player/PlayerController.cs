@@ -88,11 +88,13 @@ public class PlayerController : MonoBehaviour
     private void FixedUpdate()
     {
         Vector3 trueMoveDir = transform.forward * _moveDir.y + transform.right * _moveDir.x;
+        Debug.Log(trueMoveDir);
+        Debug.Log(trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
         _body.AddForce(trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
     {
-
+        _moveDir = ctx.ReadValue<Vector2>();
     }
 }
