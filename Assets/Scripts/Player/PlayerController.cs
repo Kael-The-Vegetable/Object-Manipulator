@@ -7,8 +7,17 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerController : MonoBehaviour
 {
+    #region General Variables
     [SerializeField] private Rigidbody _body;
     [SerializeField][ReadOnly] private bool _isLinked = false;
+    #endregion
+
+    #region Movement Variables
+    [SerializeField][ReadOnly] private Vector2 _moveDir;
+    [Min(0)] public float speed;
+    [Min(0)] public float maxSpeed;
+    #endregion
+
     private void Awake()
     {
         if (_body == null)
@@ -25,6 +34,8 @@ public class PlayerController : MonoBehaviour
     {
         LinkControls(false);
     }
+
+    #region Link Controls
     public void LinkControls(bool linkUp)
     {
         if (linkUp)
@@ -71,6 +82,13 @@ public class PlayerController : MonoBehaviour
             GameManager.Instance.PlayerInput.actions["Move"].canceled  -= OnMove;
         }
         _isLinked = false;
+    }
+    #endregion
+
+    private void FixedUpdate()
+    {
+        Vector3 trueMoveDir = transform.forward * _moveDir.y + transform.right * _moveDir.x;
+        _body.AddForce(trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
