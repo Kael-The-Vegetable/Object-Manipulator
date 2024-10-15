@@ -8,8 +8,7 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] private Rigidbody _body;
-    [SerializeField] private InputAction _moveAction;
-    private bool _isLinked = false;
+    [SerializeField][ReadOnly] private bool _isLinked = false;
     private void Awake()
     {
         if (_body == null)
@@ -27,7 +26,16 @@ public class PlayerController : MonoBehaviour
         LinkControls(false);
     }
     public void LinkControls(bool linkUp)
-        => StartCoroutine(linkUp ? Link() : UnLink());
+    {
+        if (linkUp)
+        {
+            StartCoroutine(Link());
+        }
+        else
+        {
+            UnLink();
+        }
+    }
     private IEnumerator Link()
     {
         bool unableToLink = false;
@@ -55,30 +63,14 @@ public class PlayerController : MonoBehaviour
             yield return null;
         }
     }
-    private IEnumerator UnLink()
+    private void UnLink()
     {
-        while (_isLinked)
+        if (GameManager.Instance != null)
         {
-            if (GameManager.Instance != null)
-            {
-                try
-                {
-                    GameManager.Instance.PlayerInput.actions["Move"].performed -= OnMove;
-                    GameManager.Instance.PlayerInput.actions["Move"].canceled  -= OnMove;
-                    _isLinked = false;
-                }
-                catch (Exception e)
-                {
-                    Debug.LogException(e);
-                    _isLinked = true;
-                }
-            }
-            else
-            {
-                _isLinked = false;
-            }
-            yield return null;
+            GameManager.Instance.PlayerInput.actions["Move"].performed -= OnMove;
+            GameManager.Instance.PlayerInput.actions["Move"].canceled  -= OnMove;
         }
+        _isLinked = false;
     }
 
     public void OnMove(InputAction.CallbackContext ctx)
