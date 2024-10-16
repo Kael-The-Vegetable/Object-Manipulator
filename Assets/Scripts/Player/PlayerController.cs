@@ -11,6 +11,17 @@ public class PlayerController : MonoBehaviour
     [SerializeField] 
     private Rigidbody _body;
     [SerializeField][ReadOnly] private bool _isLinked = false;
+    [SerializeField] private List<PlayerEvents> _events = new List<PlayerEvents>();
+    public List<PlayerEvents> Events 
+    { 
+        get => _events;
+        set
+        {
+            LinkControls(false);
+            _events = value;
+            LinkControls(true);
+        }
+    }
     #endregion
 
     #region Movement Variables
@@ -26,8 +37,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float _groundRayDistance;
     [SerializeField] private LayerMask _groundLayer;
     [Min(0)] public float jumpStrength;
+    #endregion
 
-    
+    #region Look Variables
+    [SerializeField][ReadOnly] private bool _lookEnabled = false;
+    [Min(0)] public float lookStrength;
     #endregion
 
     #region Debug Variables
@@ -41,7 +55,6 @@ public class PlayerController : MonoBehaviour
             _body = GetComponent<Rigidbody>();
         }
     }
-
     private void OnEnable()
     {
         LinkControls(true);
@@ -72,9 +85,10 @@ public class PlayerController : MonoBehaviour
             {
                 try
                 {
-                    GameManager.Instance.PlayerInput.actions["Move"].performed += OnMove;
-                    GameManager.Instance.PlayerInput.actions["Move"].canceled  += OnMove;
-                    GameManager.Instance.PlayerInput.actions["Jump"].performed += OnJump;
+                    for (int i = 0; i < _events.Count; i++)
+                    {
+                        LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, true);
+                    }
                     _isLinked = true;
                 }
                 catch (Exception e)
@@ -95,11 +109,67 @@ public class PlayerController : MonoBehaviour
     {
         if (GameManager.Instance != null)
         {
-            GameManager.Instance.PlayerInput.actions["Move"].performed -= OnMove;
-            GameManager.Instance.PlayerInput.actions["Move"].canceled  -= OnMove;
-            GameManager.Instance.PlayerInput.actions["Jump"].performed -= OnJump;
+            for (int i = 0; i < _events.Count; i++)
+            {
+                LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, false);
+            }
         }
         _isLinked = false;
+    }
+    private void LinkMethod(PlayerEvents.EventMethods method, string actionName, 
+                            PlayerEvents.SubscribeType type, bool linkUp)
+    {
+        BasicInputController methodToUse = null;
+        switch (method)
+        {
+            case PlayerEvents.EventMethods.OnMove:
+                methodToUse = OnMove;
+                break;
+            case PlayerEvents.EventMethods.OnJump:
+                methodToUse = OnJump;
+                break;
+            case PlayerEvents.EventMethods.OnEnableLook:
+                methodToUse = OnEnableLook;
+                break;
+            case PlayerEvents.EventMethods.OnLook:
+                methodToUse = OnLook;
+                break;
+        }
+        switch (type)
+        {
+            case PlayerEvents.SubscribeType.Performed:
+                if (linkUp)
+                {
+                    GameManager.Instance.PlayerInput.actions[actionName].performed += methodToUse.Invoke;
+                }
+                else
+                {
+                    GameManager.Instance.PlayerInput.actions[actionName].performed -= methodToUse.Invoke;
+                }
+                break;
+            case PlayerEvents.SubscribeType.Canceled:
+                if (linkUp)
+                {
+                    GameManager.Instance.PlayerInput.actions[actionName].canceled  += methodToUse.Invoke;
+                }
+                else
+                {
+                    GameManager.Instance.PlayerInput.actions[actionName].canceled  -= methodToUse.Invoke;
+                }
+                break;
+            case PlayerEvents.SubscribeType.Both:
+                if (linkUp)
+                {
+                    GameManager.Instance.PlayerInput.actions[actionName].performed += methodToUse.Invoke;
+                    GameManager.Instance.PlayerInput.actions[actionName].canceled  += methodToUse.Invoke;
+                }
+                else
+                {
+                    GameManager.Instance.PlayerInput.actions[actionName].performed -= methodToUse.Invoke;
+                    GameManager.Instance.PlayerInput.actions[actionName].canceled  -= methodToUse.Invoke;
+                }
+                break;
+        }
     }
     #endregion
 
@@ -118,11 +188,12 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    #region Input Controls
+    private delegate void BasicInputController(InputAction.CallbackContext ctx);
     public void OnMove(InputAction.CallbackContext ctx)
     {
         _moveDir = ctx.ReadValue<Vector2>();
     }
-
     public void OnJump(InputAction.CallbackContext ctx)
     {
         if (_isGrounded)
@@ -130,6 +201,25 @@ public class PlayerController : MonoBehaviour
             _body.AddForce(transform.up * jumpStrength, ForceMode.Impulse);
         }
     }
+    public void OnEnableLook(InputAction.CallbackContext ctx)
+    {
+        if (ctx.performed)
+        {
+            _lookEnabled = true;
+        }
+        else if (ctx.canceled)
+        {
+            _lookEnabled = false;
+        }
+    }
+    public void OnLook(InputAction.CallbackContext ctx)
+    {
+        if (_lookEnabled)
+        {
+
+        }
+    }
+    #endregion
 
     private void OnDrawGizmos()
     {

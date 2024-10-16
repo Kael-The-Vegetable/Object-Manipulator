@@ -568,6 +568,16 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _body: {fileID: 1554667225}
   _isLinked: 0
+  _events:
+  - <ActionName>k__BackingField: Move
+    <SubscribeTo>k__BackingField: 2
+    <Method>k__BackingField: 0
+  - <ActionName>k__BackingField: Jump
+    <SubscribeTo>k__BackingField: 0
+    <Method>k__BackingField: 1
+  - <ActionName>k__BackingField: EnableLook
+    <SubscribeTo>k__BackingField: 2
+    <Method>k__BackingField: 2
   _moveDir: {x: 0, y: 0}
   _trueMoveDir: {x: 0, y: 0, z: 0}
   speed: 50
@@ -579,6 +589,8 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 8
   jumpStrength: 10
+  _lookEnabled: 0
+  lookStrength: 0
   _showGroundRay: 1
 --- !u!54 &1554667225
 Rigidbody:

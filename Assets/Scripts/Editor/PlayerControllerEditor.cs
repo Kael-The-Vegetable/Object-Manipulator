@@ -16,7 +16,8 @@ public class PlayerControllerEditor : Editor
     // general variables
     private SerializedProperty _pBody;
     private SerializedProperty _pLinked;
-    
+    private SerializedProperty _pEvents;
+
     // movement variables
     private SerializedProperty _pMoveDir;
     private SerializedProperty _pCanJump;
@@ -34,8 +35,9 @@ public class PlayerControllerEditor : Editor
         _player = (PlayerController)target;
 
         // for general private variables
-        _pBody = serializedObject.FindProperty("_body");
+        _pBody   = serializedObject.FindProperty("_body");
         _pLinked = serializedObject.FindProperty("_isLinked");
+        _pEvents = serializedObject.FindProperty("_events");
 
         // for movement-based private variables
         _pMoveDir           = serializedObject.FindProperty("_moveDir");
@@ -52,6 +54,7 @@ public class PlayerControllerEditor : Editor
         serializedObject.Update();
 
         EditorGUILayout.PropertyField(_pBody);
+        EditorGUILayout.PropertyField(_pEvents);
         if (_pBody.objectReferenceValue == null)
         {
             EditorGUILayout.HelpBox("Warning! Make sure the Player Controller has a Rigidbody attached to the same object or is put here.", MessageType.Warning);
