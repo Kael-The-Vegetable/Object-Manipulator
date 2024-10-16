@@ -578,6 +578,10 @@ MonoBehaviour:
   - <ActionName>k__BackingField: EnableLook
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 2
+  - <ActionName>k__BackingField: Look
+    <SubscribeTo>k__BackingField: 2
+    <Method>k__BackingField: 3
+  _nameOfKeyboardMouse: Keyboard&Mouse
   _moveDir: {x: 0, y: 0}
   _trueMoveDir: {x: 0, y: 0, z: 0}
   speed: 50
@@ -590,7 +594,11 @@ MonoBehaviour:
     m_Bits: 8
   jumpStrength: 10
   _lookEnabled: 0
-  lookStrength: 0
+  _lookDelta: {x: 0, y: 0}
+  _lookTarget: {fileID: 623572746}
+  lookStrength: 1
+  _maxLookUpAngle: -20
+  _maxLookDownAngle: 60
   _showGroundRay: 1
 --- !u!54 &1554667225
 Rigidbody:
@@ -743,8 +751,12 @@ MonoBehaviour:
     m_ActionName: UI/TrackedDeviceOrientation
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: d8820b51-810e-4517-a666-878018064e98
-    m_ActionName: Manipulate/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]
+    m_ActionId: 722d231d-d1be-4ba3-9ffd-99b462633463
+    m_ActionName: Player/Jump[/Keyboard/space]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 622b88a8-a670-49ee-b25e-b37df883ed30
+    m_ActionName: Player/Grab[/Mouse/leftButton]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player

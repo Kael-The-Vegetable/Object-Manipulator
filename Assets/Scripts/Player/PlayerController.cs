@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
             LinkControls(true);
         }
     }
+    [SerializeField] private string _nameOfKeyboardMouse;
     #endregion
 
     #region Movement Variables
@@ -41,7 +42,12 @@ public class PlayerController : MonoBehaviour
 
     #region Look Variables
     [SerializeField][ReadOnly] private bool _lookEnabled = false;
+    [SerializeField][ReadOnly] private Vector2 _lookDelta;
+    [SerializeField] private Transform _lookTarget;
+    public Transform LookTarget { get => _lookTarget; set => _lookTarget = value; }
     [Min(0)] public float lookStrength;
+    [Range(-90, 0)][SerializeField] private float _maxLookUpAngle;
+    [Range(0, 90)][SerializeField] private float _maxLookDownAngle;
     #endregion
 
     #region Debug Variables
@@ -63,7 +69,7 @@ public class PlayerController : MonoBehaviour
     {
         LinkControls(false);
     }
-
+    
     #region Link Controls
     public void LinkControls(bool linkUp)
     {
@@ -120,6 +126,7 @@ public class PlayerController : MonoBehaviour
                             PlayerEvents.SubscribeType type, bool linkUp)
     {
         BasicInputController methodToUse = null;
+
         switch (method)
         {
             case PlayerEvents.EventMethods.OnMove:
@@ -186,6 +193,37 @@ public class PlayerController : MonoBehaviour
         {
             _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
         }
+
+        Look(_lookDelta);
+    }
+
+    public void Look(Vector2 delta)
+    {
+        if (_lookTarget == null)
+        {
+            Debug.LogError("You must set a Look target for camera movement to function.");
+            return;
+        }
+
+        transform.rotation *= Quaternion.AngleAxis(delta.x * lookStrength, Vector3.up);
+        transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
+
+        _lookTarget.rotation *= Quaternion.AngleAxis(delta.y * lookStrength, Vector3.right);
+
+
+        //clamp the up/down axis
+        Vector3 angles = _lookTarget.eulerAngles;
+        angles.z = 0;
+
+        if (angles.x > 180 && angles.x < 360 + _maxLookUpAngle)
+        {
+            angles.x = 360 + _maxLookUpAngle;
+        }
+        else if (angles.x < 180 && angles.x > _maxLookDownAngle)
+        {
+            angles.x = _maxLookDownAngle;
+        }
+        _lookTarget.eulerAngles = angles;
     }
 
     #region Input Controls
@@ -214,11 +252,14 @@ public class PlayerController : MonoBehaviour
     }
     public void OnLook(InputAction.CallbackContext ctx)
     {
-        if (_lookEnabled)
+        if (ctx.canceled ||
+            GameManager.Instance.PlayerInput.currentControlScheme != _nameOfKeyboardMouse ||        
+           (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse && _lookEnabled))
         {
-
+            _lookDelta = ctx.ReadValue<Vector2>();
         }
     }
+    
     #endregion
 
     private void OnDrawGizmos()
