@@ -204,7 +204,7 @@ GameObject:
   - component: {fileID: 115579790}
   - component: {fileID: 115579789}
   - component: {fileID: 115579788}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: Cube
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -714,6 +714,9 @@ MonoBehaviour:
   - <ActionName>k__BackingField: Look
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 3
+  - <ActionName>k__BackingField: Grab
+    <SubscribeTo>k__BackingField: 0
+    <Method>k__BackingField: 4
   _nameOfKeyboardMouse: Keyboard&Mouse
   _moveDir: {x: 0, y: 0}
   _trueMoveDir: {x: 0, y: 0, z: 0}
@@ -732,6 +735,11 @@ MonoBehaviour:
   lookStrength: 1
   _maxLookUpAngle: -20
   _maxLookDownAngle: 60
+  _interactableLayer:
+    serializedVersion: 2
+    m_Bits: 64
+  _maxObjDistance: 0
+  _objDistance: 5
   _showGroundRay: 1
 --- !u!54 &1554667225
 Rigidbody:
@@ -982,7 +990,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_CollideAgainst:
     serializedVersion: 2
-    m_Bits: 9
+    m_Bits: 27
   m_IgnoreTag: 
   m_TransparentLayers:
     serializedVersion: 2

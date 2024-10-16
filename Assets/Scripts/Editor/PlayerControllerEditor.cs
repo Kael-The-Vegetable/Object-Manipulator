@@ -8,11 +8,12 @@ public class PlayerControllerEditor : Editor
 {
     private PlayerController _player;
 
-    private bool _showMovementInfo = true;
-    private bool _showDebugInfo = true;
-    private bool _showDebugControls = true;
-    private bool _showInputControls = true;
-    private bool _showLookControls = true;
+    private bool _showMovementInfo;
+    private bool _showDebugInfo;
+    private bool _showDebugControls;
+    private bool _showInputControls;
+    private bool _showLookControls;
+    private bool _showGrabControls;
     
     #region Serialized Properties
     // general variables
@@ -33,6 +34,10 @@ public class PlayerControllerEditor : Editor
     private SerializedProperty _pLookTarget;
     private SerializedProperty _pLookUp;
     private SerializedProperty _pLookDown;
+
+    // grab variables
+    private SerializedProperty _pInteractLayer;
+    private SerializedProperty _pObjectDistance;
 
     // debug variables
     private SerializedProperty _pShowGroundCast;
@@ -62,6 +67,10 @@ public class PlayerControllerEditor : Editor
         _pLookTarget = serializedObject.FindProperty("_lookTarget");
         _pLookUp     = serializedObject.FindProperty("_maxLookUpAngle");
         _pLookDown   = serializedObject.FindProperty("_maxLookDownAngle");
+
+        // for grab private variables
+        _pInteractLayer  = serializedObject.FindProperty("_interactableLayer");
+        _pObjectDistance = serializedObject.FindProperty("_objDistance");
 
         // for debug private variables
         _pShowGroundCast = serializedObject.FindProperty("_showGroundRay");
@@ -128,6 +137,17 @@ public class PlayerControllerEditor : Editor
             {
                 EditorGUILayout.HelpBox("You require a GameObject to be assigned to this variable for looking functionality.", MessageType.Error);
             }
+            EditorGUI.indentLevel--;
+        }
+        EditorGUILayout.EndFoldoutHeaderGroup();
+        EditorGUILayout.Separator();
+
+        _showGrabControls = EditorGUILayout.BeginFoldoutHeaderGroup(_showGrabControls, "Grab Object Settings");
+        if (_showGrabControls)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(_pInteractLayer);
+            EditorGUILayout.PropertyField(_pObjectDistance);
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();

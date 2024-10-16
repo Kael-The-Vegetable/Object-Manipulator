@@ -50,6 +50,12 @@ public class PlayerController : MonoBehaviour
     [Range(0, 90)][SerializeField] private float _maxLookDownAngle;
     #endregion
 
+    #region Grab Variables
+    [SerializeField] private LayerMask _interactableLayer;
+    [SerializeField][Min(0)] private float _maxObjDistance;
+    [SerializeField][Min(0)] private float _objDistance;
+    #endregion
+
     #region Debug Variables
     [SerializeField] private bool _showGroundRay;
     #endregion
@@ -141,6 +147,9 @@ public class PlayerController : MonoBehaviour
             case PlayerEvents.EventMethods.OnLook:
                 methodToUse = OnLook;
                 break;
+            case PlayerEvents.EventMethods.OnGrab:
+                methodToUse = OnGrab;
+                break;
         }
         switch (type)
         {
@@ -212,8 +221,9 @@ public class PlayerController : MonoBehaviour
 
 
         //clamp the up/down axis
-        Vector3 angles = _lookTarget.eulerAngles;
+        Vector3 angles = _lookTarget.localEulerAngles;
         angles.z = 0;
+        angles.y = 0;
 
         if (angles.x > 180 && angles.x < 360 + _maxLookUpAngle)
         {
@@ -223,7 +233,7 @@ public class PlayerController : MonoBehaviour
         {
             angles.x = _maxLookDownAngle;
         }
-        _lookTarget.eulerAngles = angles;
+        _lookTarget.localEulerAngles = angles;
     }
 
     #region Input Controls
@@ -259,7 +269,17 @@ public class PlayerController : MonoBehaviour
             _lookDelta = ctx.ReadValue<Vector2>();
         }
     }
-    
+    public void OnGrab(InputAction.CallbackContext ctx)
+    {
+        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
+        Debug.DrawRay(ray.origin, ray.direction * 100, Color.red, 10);
+        if (Physics.Raycast(ray, out RaycastHit hitInfo, float.MaxValue, _interactableLayer))
+        {
+            LinkControls(false);
+            GameManager.Instance.PlayerInput.SwitchCurrentActionMap("Manipulate");
+            LinkControls(true);
+        }
+    }
     #endregion
 
     private void OnDrawGizmos()
