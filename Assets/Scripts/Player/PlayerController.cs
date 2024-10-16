@@ -23,6 +23,7 @@ public class PlayerController : MonoBehaviour
         }
     }
     [SerializeField] private string _nameOfKeyboardMouse;
+    private string _originalActionMap;
     #endregion
 
     #region Movement Variables
@@ -54,6 +55,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private LayerMask _interactableLayer;
     [SerializeField][Min(0)] private float _maxObjDistance;
     [SerializeField][Min(0)] private float _objDistance;
+    [SerializeField] private Transform _desiredPlace;
+    [SerializeField][ReadOnly] private Object _grabbed;
     #endregion
 
     #region Debug Variables
@@ -66,6 +69,7 @@ public class PlayerController : MonoBehaviour
         {
             _body = GetComponent<Rigidbody>();
         }
+        _originalActionMap = GameManager.Instance.PlayerInput.currentActionMap.name;
     }
     private void OnEnable()
     {
@@ -271,12 +275,33 @@ public class PlayerController : MonoBehaviour
     }
     public void OnGrab(InputAction.CallbackContext ctx)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Mouse.current.position.ReadValue());
-        Debug.DrawRay(ray.origin, ray.direction * 100, Color.red, 10);
-        if (Physics.Raycast(ray, out RaycastHit hitInfo, float.MaxValue, _interactableLayer))
+        if (GameManager.Instance.PlayerInput.currentActionMap.name == _originalActionMap)
         {
+            Ray ray = Camera.main.ScreenPointToRay(
+                Mouse.current.position.ReadValue());
+
+            if (Physics.Raycast(ray, out RaycastHit hitInfo, _maxObjDistance + 9, _interactableLayer))
+            {
+                if (hitInfo.transform.TryGetComponent(out _grabbed))
+                {
+                    _objDistance = hitInfo.distance - 9;
+                    _desiredPlace.localPosition = Vector3.forward * _objDistance;
+                    _grabbed.DesiredPlace = _desiredPlace;
+                    Debug.Log(_grabbed.DesiredPlace);
+
+                    LinkControls(false);
+                    GameManager.Instance.PlayerInput.SwitchCurrentActionMap("Manipulate");
+                    LinkControls(true);
+                }
+            }
+        }
+        else
+        {
+            _grabbed.DesiredPlace = null;
+            _grabbed = null;
+
             LinkControls(false);
-            GameManager.Instance.PlayerInput.SwitchCurrentActionMap("Manipulate");
+            GameManager.Instance.PlayerInput.SwitchCurrentActionMap(_originalActionMap);
             LinkControls(true);
         }
     }

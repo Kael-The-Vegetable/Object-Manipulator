@@ -38,6 +38,9 @@ public class PlayerControllerEditor : Editor
     // grab variables
     private SerializedProperty _pInteractLayer;
     private SerializedProperty _pObjectDistance;
+    private SerializedProperty _pMaxDistance;
+    private SerializedProperty _pDesiredPlace;
+    private SerializedProperty _pGrabbed;
 
     // debug variables
     private SerializedProperty _pShowGroundCast;
@@ -71,6 +74,9 @@ public class PlayerControllerEditor : Editor
         // for grab private variables
         _pInteractLayer  = serializedObject.FindProperty("_interactableLayer");
         _pObjectDistance = serializedObject.FindProperty("_objDistance");
+        _pMaxDistance    = serializedObject.FindProperty("_maxObjDistance");
+        _pDesiredPlace   = serializedObject.FindProperty("_desiredPlace");
+        _pGrabbed        = serializedObject.FindProperty("_grabbed");
 
         // for debug private variables
         _pShowGroundCast = serializedObject.FindProperty("_showGroundRay");
@@ -147,7 +153,17 @@ public class PlayerControllerEditor : Editor
         {
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(_pInteractLayer);
-            EditorGUILayout.PropertyField(_pObjectDistance);
+            EditorGUILayout.PropertyField(_pDesiredPlace);
+            if (_pDesiredPlace.objectReferenceValue == null)
+            {
+                EditorGUILayout.HelpBox("You require a GameObject that is where grabbed objects will try to go.", MessageType.Error);
+            }
+            else
+            {
+                EditorGUILayout.PropertyField(_pMaxDistance);
+                EditorGUILayout.PropertyField(_pObjectDistance);
+                EditorGUILayout.PropertyField(_pGrabbed);
+            }
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
