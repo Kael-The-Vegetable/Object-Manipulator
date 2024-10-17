@@ -338,7 +338,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _body: {fileID: 115579788}
-  _lerpValue: 1
+  _lerpValue: 0.1
   _desiredPlace: {fileID: 0}
 --- !u!1 &623572745
 GameObject:
@@ -619,7 +619,7 @@ Transform:
   m_GameObject: {fileID: 1063579737}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 3}
+  m_LocalPosition: {x: 0, y: 1.5, z: 3}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -753,18 +753,23 @@ MonoBehaviour:
   - <ActionName>k__BackingField: Move
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 0
+    <ActionMap>k__BackingField: 2
   - <ActionName>k__BackingField: Jump
     <SubscribeTo>k__BackingField: 0
     <Method>k__BackingField: 1
+    <ActionMap>k__BackingField: 2
   - <ActionName>k__BackingField: EnableLook
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 2
+    <ActionMap>k__BackingField: 2
   - <ActionName>k__BackingField: Look
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 3
+    <ActionMap>k__BackingField: 2
   - <ActionName>k__BackingField: Grab
     <SubscribeTo>k__BackingField: 0
     <Method>k__BackingField: 4
+    <ActionMap>k__BackingField: 2
   _nameOfKeyboardMouse: Keyboard&Mouse
   _moveDir: {x: 0, y: 0}
   _trueMoveDir: {x: 0, y: 0, z: 0}
@@ -948,6 +953,26 @@ MonoBehaviour:
       m_Calls: []
     m_ActionId: 622b88a8-a670-49ee-b25e-b37df883ed30
     m_ActionName: Player/Grab[/Mouse/leftButton]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 45e7b5a6-53fb-4a86-bd41-d5796985b1f3
+    m_ActionName: Manipulate/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 960f66d6-c319-4d4f-93d6-6303254cd52d
+    m_ActionName: Manipulate/Jump[/Keyboard/space]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 98fdf746-f55c-437d-bbfd-b5d52b045ec2
+    m_ActionName: Manipulate/Look[/Mouse/delta]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 90da97be-c158-4439-aa6c-fe8a12800eb9
+    m_ActionName: Manipulate/EnableLook[/Mouse/rightButton]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 8827bc96-db8a-448c-a14e-ed876db85130
+    m_ActionName: Manipulate/Grab[/Mouse/leftButton]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player

@@ -12,6 +12,7 @@ public class Object : MonoBehaviour, Interactable
         get => _desiredPlace; 
         set
         {
+            Debug.Log("WHAT");
             _desiredPlace = value;
             if (value != null)
             {
@@ -39,7 +40,7 @@ public class Object : MonoBehaviour, Interactable
         if (_desiredPlace != null)
         {
             Vector3 lerpedVector = Vector3.Lerp(transform.position, _desiredPlace.position, _lerpValue);
-            transform.Translate(lerpedVector * Time.deltaTime);
+            transform.position = lerpedVector;
         }
     }
 }
