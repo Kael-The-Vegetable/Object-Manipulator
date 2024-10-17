@@ -374,7 +374,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _body: {fileID: 457352612}
-  _speed: 0
+  _speed: 5
   _desiredPlace: {fileID: 0}
 --- !u!54 &457352612
 Rigidbody:
