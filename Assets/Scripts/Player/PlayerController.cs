@@ -103,11 +103,12 @@ public class PlayerController : MonoBehaviour
     }
     private IEnumerator Link()
     {
+        yield return null;
         if (GameManager.Instance != null)
         {
             for (int i = 0; i < _events.Count; i++)
             {
-                yield return null;
+                
                 if (
                     (_events[i].ActionMap != PlayerEvents.ActionMapUsed.Manipulate 
                     && GameManager.Instance.PlayerInput

@@ -160,7 +160,6 @@ public class PlayerControllerEditor : Editor
             {
                 EditorGUILayout.PropertyField(_pMaxDistance);
                 EditorGUILayout.PropertyField(_pObjectDistance);
-                EditorGUILayout.PropertyField(_pGrabbed);
             }
             EditorGUI.indentLevel--;
         }
@@ -184,6 +183,7 @@ public class PlayerControllerEditor : Editor
         if (_showDebugInfo)
         {
             EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(_pGrabbed);
             EditorGUILayout.PropertyField(_pMoveDir);
             if (_pCanJump.boolValue)
             {

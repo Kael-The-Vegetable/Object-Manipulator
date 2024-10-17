@@ -748,7 +748,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _body: {fileID: 1554667225}
-  _isLinked: 0
   _events:
   - <ActionName>k__BackingField: Move
     <SubscribeTo>k__BackingField: 2
@@ -780,7 +779,7 @@ MonoBehaviour:
   _groundRayDistance: 1.3
   _groundLayer:
     serializedVersion: 2
-    m_Bits: 8
+    m_Bits: 72
   jumpStrength: 10
   _lookEnabled: 0
   _lookDelta: {x: 0, y: 0}
