@@ -12,7 +12,6 @@ public class Object : MonoBehaviour, Interactable
         get => _desiredPlace; 
         set
         {
-            Debug.Log("WHAT");
             _desiredPlace = value;
             if (value != null)
             {

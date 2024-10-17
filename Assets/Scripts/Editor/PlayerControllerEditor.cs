@@ -18,7 +18,6 @@ public class PlayerControllerEditor : Editor
     #region Serialized Properties
     // general variables
     private SerializedProperty _pBody;
-    private SerializedProperty _pLinked;
     
     private SerializedProperty _pEvents;
     private SerializedProperty _pKeyboardName;
@@ -53,7 +52,6 @@ public class PlayerControllerEditor : Editor
 
         // for general private variables
         _pBody   = serializedObject.FindProperty("_body");
-        _pLinked = serializedObject.FindProperty("_isLinked");
 
         // for input private variables
         _pEvents       = serializedObject.FindProperty("_events");
@@ -186,7 +184,6 @@ public class PlayerControllerEditor : Editor
         if (_showDebugInfo)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(_pLinked);
             EditorGUILayout.PropertyField(_pMoveDir);
             if (_pCanJump.boolValue)
             {

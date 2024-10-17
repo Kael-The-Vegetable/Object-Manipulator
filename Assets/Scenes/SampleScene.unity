@@ -955,24 +955,8 @@ MonoBehaviour:
     m_ActionName: Player/Grab[/Mouse/leftButton]
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: 45e7b5a6-53fb-4a86-bd41-d5796985b1f3
+    m_ActionId: 439072f9-985e-4a00-a2fd-2d0e0aec4407
     m_ActionName: Manipulate/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 960f66d6-c319-4d4f-93d6-6303254cd52d
-    m_ActionName: Manipulate/Jump[/Keyboard/space]
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 98fdf746-f55c-437d-bbfd-b5d52b045ec2
-    m_ActionName: Manipulate/Look[/Mouse/delta]
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 90da97be-c158-4439-aa6c-fe8a12800eb9
-    m_ActionName: Manipulate/EnableLook[/Mouse/rightButton]
-  - m_PersistentCalls:
-      m_Calls: []
-    m_ActionId: 8827bc96-db8a-448c-a14e-ed876db85130
-    m_ActionName: Manipulate/Grab[/Mouse/leftButton]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
