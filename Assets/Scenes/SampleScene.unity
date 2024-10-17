@@ -779,7 +779,7 @@ MonoBehaviour:
   _groundRayDistance: 1.3
   _groundLayer:
     serializedVersion: 2
-    m_Bits: 72
+    m_Bits: 8
   jumpStrength: 10
   _lookEnabled: 0
   _lookDelta: {x: 0, y: 0}

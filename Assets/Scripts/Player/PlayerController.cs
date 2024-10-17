@@ -94,7 +94,7 @@ public class PlayerController : MonoBehaviour
         {
             if (GameManager.Instance != null)
             {
-                StartCoroutine(UnLink());
+                UnLink();
             }
             _playerIsLinked = false;
             _manipulateIsLinked = false;
@@ -131,11 +131,10 @@ public class PlayerController : MonoBehaviour
             }
         }
     }
-    private IEnumerator UnLink()
+    private void UnLink()
     {
         for (int i = 0; i < _events.Count; i++)
         {
-            yield return null;
             LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, _events[i].ActionMap, false);
         }
     }
@@ -257,6 +256,19 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        if (_grabbed != null)
+        {
+            Vector3 difference = _desiredPlace.position - _lookTarget.position;
+
+            if (Physics.Raycast(_lookTarget.position, difference.normalized, out RaycastHit hitInfo, difference.magnitude, _groundLayer))
+            {
+                _desiredPlace.localPosition = new Vector3(
+                        _desiredPlace.localPosition.x,
+                        hitInfo.distance * 0.25f,
+                        hitInfo.distance);
+            }
+        }
+
         if (_canJump)
         {
             _isGrounded = Physics.Raycast(transform.position, -transform.up, _groundRayDistance, _groundLayer);
@@ -302,17 +314,11 @@ public class PlayerController : MonoBehaviour
         _lookTarget.localEulerAngles = angles;
     }
 
-    private IEnumerator WaitBeforeChangeActionMap(string mapToUse)
-    {
-        yield return null;
-        
-    }
 
     #region Input Controls
     private delegate void BasicInputController(InputAction.CallbackContext ctx);
     public void OnMove(InputAction.CallbackContext ctx)
     {
-        Debug.Log(ctx.ReadValue<Vector2>());
         _moveDir = ctx.ReadValue<Vector2>();
     }
     public void OnJump(InputAction.CallbackContext ctx)
@@ -344,21 +350,24 @@ public class PlayerController : MonoBehaviour
     }
     public void OnGrab(InputAction.CallbackContext ctx)
     {
-        
-        if (GameManager.Instance.PlayerInput.currentActionMap.name == "Player")
+        Debug.Log("Grabbing");
+        if (_grabbed == null)
         {
             Ray ray = Camera.main.ScreenPointToRay(
                 Mouse.current.position.ReadValue());
 
-            if (Physics.Raycast(ray, out RaycastHit hitInfo, _maxObjDistance + 9, _interactableLayer))
+            // this should get a ray that is _maxObjDistance from the player not camera.
+            float maxRayDistance = _maxObjDistance + (transform.position - Camera.main.transform.position).magnitude;
+
+            if (Physics.Raycast(ray, out RaycastHit hitInfo, maxRayDistance, _interactableLayer))
             {
                 if (hitInfo.transform.TryGetComponent(out _grabbed))
                 {
-                    _objDistance = hitInfo.distance - 9;
+                    _objDistance = (transform.position - hitInfo.transform.position).magnitude;
 
                     _desiredPlace.localPosition = new Vector3(
                         _desiredPlace.localPosition.x,
-                        _desiredPlace.localPosition.y, 
+                        _objDistance * 0.25f, 
                         _objDistance);
 
                     _grabbed.DesiredPlace = _desiredPlace;
@@ -373,11 +382,8 @@ public class PlayerController : MonoBehaviour
         }
         else
         {
-            if (_grabbed != null)
-            {
-                _grabbed.DesiredPlace = null;
-                _grabbed = null;
-            }
+            _grabbed.DesiredPlace = null;
+            _grabbed = null;
             GameManager.Instance.PlayerInput.SwitchCurrentActionMap("Player");
             if (!_playerIsLinked)
             {
