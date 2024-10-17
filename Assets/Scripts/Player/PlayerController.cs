@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.PackageManager;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -256,6 +257,7 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
+        #region Grabbed Object
         if (_grabbed != null)
         {
             Vector3 difference = _desiredPlace.position - _lookTarget.position;
@@ -267,8 +269,28 @@ public class PlayerController : MonoBehaviour
                         hitInfo.distance * 0.5f,
                         hitInfo.distance);
             }
+            else if (_desiredPlace.position.z < _objDistance)
+            {
+                if (Physics.Raycast(_lookTarget.position, difference.normalized, out hitInfo, _objDistance, _groundLayer))
+                {
+                    _desiredPlace.localPosition = new Vector3(
+                            _desiredPlace.localPosition.x,
+                            hitInfo.distance * 0.5f,
+                            hitInfo.distance);
+                }
+                else
+                {
+                    _desiredPlace.localPosition = new Vector3(
+                            _desiredPlace.localPosition.x,
+                            _objDistance * 0.5f,
+                            _objDistance);
+                }
+                
+            }
         }
+        #endregion
 
+        #region Movement
         if (_canJump)
         {
             _isGrounded = Physics.Raycast(transform.position, -transform.up, _groundRayDistance, _groundLayer);
@@ -280,6 +302,7 @@ public class PlayerController : MonoBehaviour
         {
             _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
         }
+        #endregion
 
         Look(_lookDelta);
     }
@@ -351,42 +374,37 @@ public class PlayerController : MonoBehaviour
     {
         if (_grabbed == null)
         {
-
-            Ray ray = new Ray();
-            Debug.Log(GameManager.Instance.PlayerInput.currentControlScheme);
             if (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse)
             {
-                ray = Camera.main.ScreenPointToRay(
+                Ray ray = Camera.main.ScreenPointToRay(
                 Mouse.current.position.ReadValue());
+                
+                float maxRayDistance = _maxObjDistance + (transform.position - Camera.main.transform.position).magnitude;
+                // this should get a ray that is _maxObjDistance from the player not camera.
+                Debug.DrawRay(Camera.main.transform.position, ray.direction * maxRayDistance, Color.red, 10);
+                if (Physics.Raycast(ray, out RaycastHit hitInfo, maxRayDistance, _interactableLayer))
+                {
+                    GrabHitObject(hitInfo);
+                }
             }
             else
-            {
-
-            }
-
-            // this should get a ray that is _maxObjDistance from the player not camera.
-            float maxRayDistance = _maxObjDistance + (transform.position - Camera.main.transform.position).magnitude;
-
-            if (Physics.Raycast(ray, out RaycastHit hitInfo, maxRayDistance, _interactableLayer))
-            {
-                if (hitInfo.transform.TryGetComponent(out _grabbed))
+            { // grab with controller=
+                Vector3 halfExtends = Vector2.one * _maxObjDistance * 0.5f;
+                
+                RaycastHit[] hitInfos = Physics.BoxCastAll(_lookTarget.position, halfExtends, transform.forward, _lookTarget.rotation, _maxObjDistance, _interactableLayer);
+                if (hitInfos.Length > 0)
                 {
-                    _objDistance = (transform.position - hitInfo.transform.position).magnitude;
-
-                    _desiredPlace.localPosition = new Vector3(
-                        _desiredPlace.localPosition.x,
-                        _objDistance * 0.5f, 
-                        _objDistance);
-
-                    _grabbed.DesiredPlace = _desiredPlace;
-
-                    Physics.IgnoreCollision(GetComponent<Collider>(), _grabbed.gameObject.GetComponent<Collider>(), true);
-
-                    GameManager.Instance.PlayerInput.SwitchCurrentActionMap(_nameOfActionMaps[1]);
-                    if (!_manipulateIsLinked)
+                    int closest = 0;
+                    float closestDistance = float.MaxValue;
+                    for (int i = 0; i < hitInfos.Length; i++)
                     {
-                        LinkControls(true);
+                        if (hitInfos[i].distance < closestDistance)
+                        {
+                            closest = i;
+                            closestDistance = hitInfos[i].distance;
+                        }
                     }
+                    GrabHitObject(hitInfos[closest]);
                 }
             }
         }
@@ -403,6 +421,33 @@ public class PlayerController : MonoBehaviour
                 LinkControls(true);
             }
         }
+    }
+    public bool GrabHitObject(RaycastHit hitInfo)
+    {
+        if (hitInfo.transform.TryGetComponent(out _grabbed))
+        {
+            _objDistance = (transform.position - hitInfo.transform.position).magnitude;
+            if (_objDistance > _maxObjDistance)
+            {
+                _objDistance = _maxObjDistance;
+            }
+            _desiredPlace.localPosition = new Vector3(
+                0,
+                _objDistance * 0.5f,
+                _objDistance);
+
+            _grabbed.DesiredPlace = _desiredPlace;
+
+            Physics.IgnoreCollision(GetComponent<Collider>(), _grabbed.gameObject.GetComponent<Collider>(), true);
+
+            GameManager.Instance.PlayerInput.SwitchCurrentActionMap(_nameOfActionMaps[1]);
+            if (!_manipulateIsLinked)
+            {
+                LinkControls(true);
+            }
+            return true;
+        }
+        return false;
     }
     #endregion
 

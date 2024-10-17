@@ -6,7 +6,7 @@ using UnityEngine;
 public class Object : MonoBehaviour, Interactable
 {
     [SerializeField] private Rigidbody _body;
-    [SerializeField][Range(0, 1)] private float _lerpValue;
+    [SerializeField][Range(1, 10)] private float _speed;
     public Transform DesiredPlace 
     { 
         get => _desiredPlace; 
@@ -38,8 +38,9 @@ public class Object : MonoBehaviour, Interactable
     {
         if (_desiredPlace != null)
         {
-            Vector3 lerpedVector = Vector3.Lerp(transform.position, _desiredPlace.position, _lerpValue);
-            transform.position = lerpedVector;
+            Vector3 newPosDelta = _desiredPlace.position - transform.position;
+            Debug.Log(newPosDelta);
+            transform.Translate(newPosDelta * Time.deltaTime * _speed, Space.World);
         }
     }
 }
