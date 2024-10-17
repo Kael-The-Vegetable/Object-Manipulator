@@ -14,6 +14,6 @@ public struct PlayerEvents
     public enum EventMethods { OnMove, OnJump, OnEnableLook, OnLook, OnGrab }
     [field:SerializeField] public EventMethods Method { get; private set; }
 
-    public enum ActionMapUsed { Player, Manipulate, Both }
-    [field:SerializeField] public ActionMapUsed ActionMap { get; private set; }
+    public enum ActionMaps { Player, Manipulate, Both }
+    [field:SerializeField] public ActionMaps ActionMap { get; private set; }
 }

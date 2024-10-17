@@ -19,6 +19,7 @@ public class PlayerControllerEditor : Editor
     // general variables
     private SerializedProperty _pBody;
     
+    // link variables
     private SerializedProperty _pEvents;
     private SerializedProperty _pKeyboardName;
 
@@ -43,6 +44,7 @@ public class PlayerControllerEditor : Editor
 
     // debug variables
     private SerializedProperty _pShowGroundCast;
+    private SerializedProperty _pShowGrabCast;
     #endregion
 
     private void OnEnable()
@@ -78,6 +80,7 @@ public class PlayerControllerEditor : Editor
 
         // for debug private variables
         _pShowGroundCast = serializedObject.FindProperty("_showGroundRay");
+        _pShowGrabCast   = serializedObject.FindProperty("_showGrabRay");
     }
     public override void OnInspectorGUI()
     {
@@ -90,6 +93,7 @@ public class PlayerControllerEditor : Editor
         }
         EditorGUILayout.Separator();
 
+        #region Input
         _showInputControls = EditorGUILayout.Foldout(_showInputControls, "Input Settings");
         if (_showInputControls)
         {
@@ -99,7 +103,9 @@ public class PlayerControllerEditor : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.Separator();
+        #endregion
 
+        #region Movement
         _showMovementInfo = EditorGUILayout.BeginFoldoutHeaderGroup(_showMovementInfo, "Movement Settings");
         if (_showMovementInfo)
         {
@@ -125,7 +131,9 @@ public class PlayerControllerEditor : Editor
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.Separator();
+        #endregion
 
+        #region Looking
         _showLookControls = EditorGUILayout.BeginFoldoutHeaderGroup(_showLookControls, "Look Settings");
         if (_showLookControls)
         {
@@ -145,7 +153,9 @@ public class PlayerControllerEditor : Editor
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.Separator();
+        #endregion
 
+        #region Grabbing
         _showGrabControls = EditorGUILayout.BeginFoldoutHeaderGroup(_showGrabControls, "Grab Object Settings");
         if (_showGrabControls)
         {
@@ -165,7 +175,9 @@ public class PlayerControllerEditor : Editor
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.Separator();
+        #endregion
 
+        #region Debug Controls
         _showDebugControls = EditorGUILayout.BeginFoldoutHeaderGroup(_showDebugControls, "Debug Settings");
         if (_showDebugControls)
         {
@@ -174,11 +186,17 @@ public class PlayerControllerEditor : Editor
             {
                 EditorGUILayout.PropertyField(_pShowGroundCast);
             }
+            if (_pGrabbed.objectReferenceValue != null)
+            {
+                EditorGUILayout.PropertyField(_pShowGrabCast);
+            }
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.Separator();
+        #endregion
 
+        #region Debug Info
         _showDebugInfo = EditorGUILayout.BeginFoldoutHeaderGroup(_showDebugInfo, "Debug Info");
         if (_showDebugInfo)
         {
@@ -192,7 +210,8 @@ public class PlayerControllerEditor : Editor
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
-        
+        #endregion
+
         // apply changes
         serializedObject.ApplyModifiedProperties();
     }

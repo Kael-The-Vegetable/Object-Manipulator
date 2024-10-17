@@ -795,6 +795,7 @@ MonoBehaviour:
   _desiredPlace: {fileID: 1063579738}
   _grabbed: {fileID: 0}
   _showGroundRay: 1
+  _showGrabRay: 0
 --- !u!54 &1554667225
 Rigidbody:
   m_ObjectHideFlags: 0

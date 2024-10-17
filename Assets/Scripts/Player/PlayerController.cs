@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour
         }
     }
     [SerializeField] private string _nameOfKeyboardMouse;
+    private string[] _nameOfActionMaps;
     #endregion
 
     #region Movement Variables
@@ -65,6 +66,7 @@ public class PlayerController : MonoBehaviour
 
     #region Debug Variables
     [SerializeField] private bool _showGroundRay;
+    [SerializeField] private bool _showGrabRay;
     #endregion
 
     private void Awake()
@@ -72,6 +74,13 @@ public class PlayerController : MonoBehaviour
         if (_body == null)
         {
             _body = GetComponent<Rigidbody>();
+        }
+
+        int mapCount = GameManager.Instance.PlayerInput.actions.actionMaps.Count;
+        _nameOfActionMaps = new string[mapCount];
+        for(int i = 0; i < mapCount; i++)
+        {
+            _nameOfActionMaps[i] = GameManager.Instance.PlayerInput.actions.actionMaps[i].name;
         }
     }
     private void OnEnable()
@@ -108,24 +117,24 @@ public class PlayerController : MonoBehaviour
         {
             for (int i = 0; i < _events.Count; i++)
             {
-                
+                string actionMap = _events[i].ActionMap.ToString();
                 if (
-                    (_events[i].ActionMap != PlayerEvents.ActionMapUsed.Manipulate 
+                    (actionMap != _nameOfActionMaps[1]
                     && GameManager.Instance.PlayerInput
-                        .currentActionMap.name == "Player")
+                        .currentActionMap.name == _nameOfActionMaps[0])
                   ||
-                    (_events[i].ActionMap != PlayerEvents.ActionMapUsed.Player 
+                    (actionMap != _nameOfActionMaps[0]
                     && GameManager.Instance.PlayerInput
-                        .currentActionMap.name == "Manipulate"))
+                        .currentActionMap.name == _nameOfActionMaps[1]))
                 {
-                    LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, _events[i].ActionMap, true);
+                    LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, actionMap, true);
                 }
             }
-            if (GameManager.Instance.PlayerInput.currentActionMap.name == "Player")
+            if (GameManager.Instance.PlayerInput.currentActionMap.name == _nameOfActionMaps[0])
             {
                 _playerIsLinked = true;
             }
-            else
+            else if (GameManager.Instance.PlayerInput.currentActionMap.name == _nameOfActionMaps[1])
             {
                 _manipulateIsLinked = true;
             }
@@ -135,12 +144,12 @@ public class PlayerController : MonoBehaviour
     {
         for (int i = 0; i < _events.Count; i++)
         {
-            LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, _events[i].ActionMap, false);
+            LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, _events[i].ActionMap.ToString(), false);
         }
     }
     private void LinkMethod(PlayerEvents.EventMethods method, string actionName, 
                             PlayerEvents.SubscribeType type, 
-                            PlayerEvents.ActionMapUsed actionMap, bool linkUp)
+                            string map, bool linkUp)
     {
         BasicInputController methodToUse = null;
         int ID = 0;
@@ -164,50 +173,41 @@ public class PlayerController : MonoBehaviour
                 break;
         }
 
-        if (actionMap != PlayerEvents.ActionMapUsed.Both)
+        if (map == "Both")
         {
-            switch (actionMap)
+            bool found = false;
+            for (int i = 0; i < _nameOfActionMaps.Length && !found; i++)
             {
-                case PlayerEvents.ActionMapUsed.Player:
-                    ID = 0;
-                    break;
-                case PlayerEvents.ActionMapUsed.Manipulate:
-                    ID = 1;
-                    break;
-            }
-            switch (type)
-            {
-                case PlayerEvents.SubscribeType.Performed:
-                case PlayerEvents.SubscribeType.Canceled:
-                    LinkHelper(actionName, methodToUse, type, linkUp, ID);
-                    break;
-                case PlayerEvents.SubscribeType.Both:
-                    LinkHelper(actionName, methodToUse, PlayerEvents.SubscribeType.Performed, linkUp, ID);
-                    LinkHelper(actionName, methodToUse, PlayerEvents.SubscribeType.Canceled, linkUp, ID);
-                    break;
+                if (GameManager.Instance.PlayerInput.currentActionMap.name == _nameOfActionMaps[i])
+                {
+                    found = true;
+                    ID = i;
+                }
             }
         }
         else
         {
-            if (GameManager.Instance.PlayerInput.currentActionMap.name == "Player")
+            bool found = false;
+            for (int i = 0; i < _nameOfActionMaps.Length && !found; i++)
             {
-                ID = 0;
+                if (map == _nameOfActionMaps[i])
+                {
+                    found = true;
+                    ID = i;
+                }
             }
-            else
-            {
-                ID = 1;
-            }
-            switch (type)
-            {
-                case PlayerEvents.SubscribeType.Performed:
-                case PlayerEvents.SubscribeType.Canceled:
-                    LinkHelper(actionName, methodToUse, type, linkUp, ID);
-                    break;
-                case PlayerEvents.SubscribeType.Both:
-                    LinkHelper(actionName, methodToUse, PlayerEvents.SubscribeType.Performed, linkUp, ID);
-                    LinkHelper(actionName, methodToUse, PlayerEvents.SubscribeType.Canceled, linkUp, ID);
-                    break;
-            }
+        }
+
+        switch (type)
+        {
+            case PlayerEvents.SubscribeType.Performed:
+            case PlayerEvents.SubscribeType.Canceled:
+                LinkHelper(actionName, methodToUse, type, linkUp, ID);
+                break;
+            case PlayerEvents.SubscribeType.Both:
+                LinkHelper(actionName, methodToUse, PlayerEvents.SubscribeType.Performed, linkUp, ID);
+                LinkHelper(actionName, methodToUse, PlayerEvents.SubscribeType.Canceled, linkUp, ID);
+                break;
         }
     }
     private void LinkHelper(string actionName, BasicInputController method, PlayerEvents.SubscribeType action, bool linkUp, int actionMapID)
@@ -264,7 +264,7 @@ public class PlayerController : MonoBehaviour
             {
                 _desiredPlace.localPosition = new Vector3(
                         _desiredPlace.localPosition.x,
-                        hitInfo.distance * 0.25f,
+                        hitInfo.distance * 0.5f,
                         hitInfo.distance);
             }
         }
@@ -314,7 +314,6 @@ public class PlayerController : MonoBehaviour
         _lookTarget.localEulerAngles = angles;
     }
 
-
     #region Input Controls
     private delegate void BasicInputController(InputAction.CallbackContext ctx);
     public void OnMove(InputAction.CallbackContext ctx)
@@ -350,11 +349,20 @@ public class PlayerController : MonoBehaviour
     }
     public void OnGrab(InputAction.CallbackContext ctx)
     {
-        Debug.Log("Grabbing");
         if (_grabbed == null)
         {
-            Ray ray = Camera.main.ScreenPointToRay(
+
+            Ray ray = new Ray();
+            Debug.Log(GameManager.Instance.PlayerInput.currentControlScheme);
+            if (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse)
+            {
+                ray = Camera.main.ScreenPointToRay(
                 Mouse.current.position.ReadValue());
+            }
+            else
+            {
+
+            }
 
             // this should get a ray that is _maxObjDistance from the player not camera.
             float maxRayDistance = _maxObjDistance + (transform.position - Camera.main.transform.position).magnitude;
@@ -367,12 +375,14 @@ public class PlayerController : MonoBehaviour
 
                     _desiredPlace.localPosition = new Vector3(
                         _desiredPlace.localPosition.x,
-                        _objDistance * 0.25f, 
+                        _objDistance * 0.5f, 
                         _objDistance);
 
                     _grabbed.DesiredPlace = _desiredPlace;
 
-                    GameManager.Instance.PlayerInput.SwitchCurrentActionMap("Manipulate");
+                    Physics.IgnoreCollision(GetComponent<Collider>(), _grabbed.gameObject.GetComponent<Collider>(), true);
+
+                    GameManager.Instance.PlayerInput.SwitchCurrentActionMap(_nameOfActionMaps[1]);
                     if (!_manipulateIsLinked)
                     {
                         LinkControls(true);
@@ -383,8 +393,11 @@ public class PlayerController : MonoBehaviour
         else
         {
             _grabbed.DesiredPlace = null;
+
+            Physics.IgnoreCollision(GetComponent<Collider>(), _grabbed.gameObject.GetComponent<Collider>(), false);
+
             _grabbed = null;
-            GameManager.Instance.PlayerInput.SwitchCurrentActionMap("Player");
+            GameManager.Instance.PlayerInput.SwitchCurrentActionMap(_nameOfActionMaps[0]);
             if (!_playerIsLinked)
             {
                 LinkControls(true);
@@ -399,6 +412,11 @@ public class PlayerController : MonoBehaviour
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawRay(transform.position, -transform.up * _groundRayDistance);
+        }
+        if (_showGrabRay && _grabbed != null)
+        {
+            Gizmos.color = Color.red;
+            Gizmos.DrawRay(_lookTarget.position, _desiredPlace.position - _lookTarget.position);
         }
     }
 }
