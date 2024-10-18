@@ -25,6 +25,7 @@ public class PlayerControllerEditor : Editor
 
     // movement variables
     private SerializedProperty _pMoveDir;
+    private SerializedProperty _pTrueMoveDir;
     private SerializedProperty _pCanJump;
     private SerializedProperty _pIsGrounded;
     private SerializedProperty _pGroundRayDistance;
@@ -34,13 +35,13 @@ public class PlayerControllerEditor : Editor
     private SerializedProperty _pLookTarget;
     private SerializedProperty _pLookUp;
     private SerializedProperty _pLookDown;
+    private SerializedProperty _pModel;
 
     // grab variables
     private SerializedProperty _pInteractLayer;
     private SerializedProperty _pObjectDistance;
     private SerializedProperty _pMaxDistance;
     private SerializedProperty _pDesiredPlace;
-    private SerializedProperty _pGrabbed;
 
     // debug variables
     private SerializedProperty _pShowGroundCast;
@@ -61,6 +62,7 @@ public class PlayerControllerEditor : Editor
 
         // for movement-based private variables
         _pMoveDir           = serializedObject.FindProperty("_moveDir");
+        _pTrueMoveDir       = serializedObject.FindProperty("_trueMoveDir");
         _pCanJump           = serializedObject.FindProperty("_canJump");
         _pIsGrounded        = serializedObject.FindProperty("_isGrounded");
         _pGroundRayDistance = serializedObject.FindProperty("_groundRayDistance");
@@ -70,13 +72,13 @@ public class PlayerControllerEditor : Editor
         _pLookTarget = serializedObject.FindProperty("_lookTarget");
         _pLookUp     = serializedObject.FindProperty("_maxLookUpAngle");
         _pLookDown   = serializedObject.FindProperty("_maxLookDownAngle");
+        _pModel      = serializedObject.FindProperty("_model");
 
         // for grab private variables
         _pInteractLayer  = serializedObject.FindProperty("_interactableLayer");
         _pObjectDistance = serializedObject.FindProperty("_objDistance");
         _pMaxDistance    = serializedObject.FindProperty("_maxObjDistance");
         _pDesiredPlace   = serializedObject.FindProperty("_desiredPlace");
-        _pGrabbed        = serializedObject.FindProperty("_grabbed");
 
         // for debug private variables
         _pShowGroundCast = serializedObject.FindProperty("_showGroundRay");
@@ -144,6 +146,11 @@ public class PlayerControllerEditor : Editor
                 _player.lookStrength = EditorGUILayout.FloatField("Look Strength", _player.lookStrength);
                 EditorGUILayout.PropertyField(_pLookUp);
                 EditorGUILayout.PropertyField(_pLookDown);
+                EditorGUILayout.PropertyField(_pModel);
+                if (_pModel.objectReferenceValue == null)
+                {
+                    EditorGUILayout.HelpBox("You should have a Model that is separate from the player so that the model can rotate independantly of the camera.", MessageType.Warning);
+                }
             }
             else
             {
@@ -186,10 +193,7 @@ public class PlayerControllerEditor : Editor
             {
                 EditorGUILayout.PropertyField(_pShowGroundCast);
             }
-            if (_pGrabbed.objectReferenceValue != null)
-            {
-                EditorGUILayout.PropertyField(_pShowGrabCast);
-            }
+            EditorGUILayout.PropertyField(_pShowGrabCast);
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
@@ -201,8 +205,8 @@ public class PlayerControllerEditor : Editor
         if (_showDebugInfo)
         {
             EditorGUI.indentLevel++;
-            EditorGUILayout.PropertyField(_pGrabbed);
             EditorGUILayout.PropertyField(_pMoveDir);
+            EditorGUILayout.PropertyField(_pTrueMoveDir);
             if (_pCanJump.boolValue)
             {
                 EditorGUILayout.PropertyField(_pIsGrounded);

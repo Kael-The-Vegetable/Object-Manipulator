@@ -9,8 +9,8 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     #region General Variables
-    [SerializeField] 
-    private Rigidbody _body;
+    [SerializeField] private Rigidbody _body;
+    public Rigidbody Body { get { return _body; } }
     #endregion
 
     #region Link Variables
@@ -55,6 +55,7 @@ public class PlayerController : MonoBehaviour
     [Min(0)] public float lookStrength;
     [Range(-90, 0)][SerializeField] private float _maxLookUpAngle;
     [Range(0, 90)][SerializeField] private float _maxLookDownAngle;
+    [SerializeField] private LookToMove _model;
     #endregion
 
     #region Grab Variables
@@ -62,7 +63,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField][Min(0)] private float _maxObjDistance;
     [SerializeField][Min(0)] private float _objDistance;
     [SerializeField] private Transform _desiredPlace;
-    [SerializeField][ReadOnly] private Object _grabbed;
+    private Interactable _grabbed;
+    private Collider _playerCollider;
     #endregion
 
     #region Debug Variables
@@ -76,6 +78,11 @@ public class PlayerController : MonoBehaviour
         {
             _body = GetComponent<Rigidbody>();
         }
+        if (_model == null)
+        {
+            _model = GetComponentInChildren<LookToMove>();
+        }
+        _playerCollider = GetComponentInChildren<Collider>();
 
         int mapCount = GameManager.Instance.PlayerInput.actions.actionMaps.Count;
         _nameOfActionMaps = new string[mapCount];
@@ -83,6 +90,7 @@ public class PlayerController : MonoBehaviour
         {
             _nameOfActionMaps[i] = GameManager.Instance.PlayerInput.actions.actionMaps[i].name;
         }
+
     }
     private void OnEnable()
     {
@@ -262,6 +270,8 @@ public class PlayerController : MonoBehaviour
         {
             Vector3 difference = _desiredPlace.position - _lookTarget.position;
 
+            _model.UpdateRotation(Quaternion.LookRotation(difference.Flatten()));
+
             if (Physics.Raycast(_lookTarget.position, difference.normalized, out RaycastHit hitInfo, difference.magnitude, _groundLayer))
             {
                 _desiredPlace.localPosition = new Vector3(
@@ -296,7 +306,14 @@ public class PlayerController : MonoBehaviour
             _isGrounded = Physics.Raycast(transform.position, -transform.up, _groundRayDistance, _groundLayer);
         }
 
-        _trueMoveDir = transform.forward * _moveDir.y + transform.right * _moveDir.x;
+        Vector3 forward = _lookTarget.forward.Flatten();
+        Vector3 right   = _lookTarget.right.Flatten();
+
+        _trueMoveDir = forward * _moveDir.y + right * _moveDir.x;
+        if (_trueMoveDir.sqrMagnitude != 0 && _grabbed == null)
+        {
+            _model.UpdateRotation(Quaternion.LookRotation(_trueMoveDir));
+        }
 
         if (_body.velocity.magnitude < maxSpeed)
         {
@@ -306,7 +323,6 @@ public class PlayerController : MonoBehaviour
 
         Look(_lookDelta);
     }
-
     public void Look(Vector2 delta)
     {
         if (_lookTarget == null)
@@ -315,8 +331,7 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
-        transform.rotation *= Quaternion.AngleAxis(delta.x * lookStrength, Vector3.up);
-        transform.eulerAngles = new Vector3(0, transform.eulerAngles.y, 0);
+        _lookTarget.rotation *= Quaternion.AngleAxis(delta.x * lookStrength, Vector3.up);
 
         _lookTarget.rotation *= Quaternion.AngleAxis(delta.y * lookStrength, Vector3.right);
 
@@ -324,7 +339,6 @@ public class PlayerController : MonoBehaviour
         //clamp the up/down axis
         Vector3 angles = _lookTarget.localEulerAngles;
         angles.z = 0;
-        angles.y = 0;
 
         if (angles.x > 180 && angles.x < 360 + _maxLookUpAngle)
         {
@@ -412,10 +426,10 @@ public class PlayerController : MonoBehaviour
         {
             _grabbed.DesiredPlace = null;
 
-            Physics.IgnoreCollision(GetComponent<Collider>(), _grabbed.gameObject.GetComponent<Collider>(), false);
+            Physics.IgnoreCollision(_playerCollider, _grabbed.gameObject.GetComponent<Collider>(), false);
 
             _grabbed = null;
-            GameManager.Instance.PlayerInput.SwitchCurrentActionMap(_nameOfActionMaps[0]);
+            GameManager.ChangeActionMap(_nameOfActionMaps[0]);
             if (!_playerIsLinked)
             {
                 LinkControls(true);
@@ -438,9 +452,9 @@ public class PlayerController : MonoBehaviour
 
             _grabbed.DesiredPlace = _desiredPlace;
 
-            Physics.IgnoreCollision(GetComponent<Collider>(), _grabbed.gameObject.GetComponent<Collider>(), true);
+            Physics.IgnoreCollision(_playerCollider, _grabbed.gameObject.GetComponent<Collider>(), true);
 
-            GameManager.Instance.PlayerInput.SwitchCurrentActionMap(_nameOfActionMaps[1]);
+            GameManager.ChangeActionMap(_nameOfActionMaps[1]);
             if (!_manipulateIsLinked)
             {
                 LinkControls(true);

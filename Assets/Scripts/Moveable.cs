@@ -3,10 +3,12 @@ using System.Collections.Generic;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
-public class Object : MonoBehaviour, Interactable
+public class Moveable : MonoBehaviour, Interactable
 {
     [SerializeField] private Rigidbody _body;
     [SerializeField][Range(1, 10)] private float _speed;
+    [SerializeField][Range(0, 1)] private float _rotationLerp;
+    private float _originalDrag;
     public Transform DesiredPlace 
     { 
         get => _desiredPlace; 
@@ -16,10 +18,12 @@ public class Object : MonoBehaviour, Interactable
             if (value != null)
             {
                 _body.useGravity = false;
+                _body.drag = 1;
             }
             else
             {
                 _body.useGravity = true;
+                _body.drag = _originalDrag;
             }
         }
     }
@@ -30,6 +34,7 @@ public class Object : MonoBehaviour, Interactable
         if (_body == null)
         {
             _body = GetComponent<Rigidbody>();
+            _originalDrag = _body.drag;
         }
     }
 
@@ -38,9 +43,13 @@ public class Object : MonoBehaviour, Interactable
     {
         if (_desiredPlace != null)
         {
+            //movement
             Vector3 newPosDelta = _desiredPlace.position - transform.position;
-            Debug.Log(newPosDelta);
             transform.Translate(newPosDelta * Time.deltaTime * _speed, Space.World);
+            
+            //rotation
+            Quaternion desiredRotation = Quaternion.Euler(_desiredPlace.localEulerAngles);
+            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, _rotationLerp);
         }
     }
 }

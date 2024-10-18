@@ -25,4 +25,6 @@ public class GameManager : MonoBehaviour
             PlayerInput = GetComponent<PlayerInput>();
         }
     }
+    public static void ChangeActionMap(string name)
+        => Instance.PlayerInput.SwitchCurrentActionMap(name);
 }
