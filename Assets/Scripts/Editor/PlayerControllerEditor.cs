@@ -14,7 +14,8 @@ public class PlayerControllerEditor : Editor
     private bool _showInputControls;
     private bool _showLookControls;
     private bool _showGrabControls;
-    
+    private bool _showManipulateControls;
+
     #region Serialized Properties
     // general variables
     private SerializedProperty _pBody;
@@ -39,9 +40,13 @@ public class PlayerControllerEditor : Editor
 
     // grab variables
     private SerializedProperty _pInteractLayer;
+    private SerializedProperty _pDegreesUp;
     private SerializedProperty _pObjectDistance;
     private SerializedProperty _pMaxDistance;
     private SerializedProperty _pDesiredPlace;
+
+    // manipulation variables
+    private SerializedProperty _pMoveObjectSpeed;
 
     // debug variables
     private SerializedProperty _pShowGroundCast;
@@ -76,9 +81,13 @@ public class PlayerControllerEditor : Editor
 
         // for grab private variables
         _pInteractLayer  = serializedObject.FindProperty("_interactableLayer");
+        _pDegreesUp      = serializedObject.FindProperty("_degreesUp");
         _pObjectDistance = serializedObject.FindProperty("_objDistance");
         _pMaxDistance    = serializedObject.FindProperty("_maxObjDistance");
         _pDesiredPlace   = serializedObject.FindProperty("_desiredPlace");
+
+        // for manipulate private variables
+        _pMoveObjectSpeed = serializedObject.FindProperty("_moveObjectSpeed");
 
         // for debug private variables
         _pShowGroundCast = serializedObject.FindProperty("_showGroundRay");
@@ -168,6 +177,7 @@ public class PlayerControllerEditor : Editor
         {
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(_pInteractLayer);
+            EditorGUILayout.PropertyField(_pDegreesUp);
             EditorGUILayout.PropertyField(_pDesiredPlace);
             if (_pDesiredPlace.objectReferenceValue == null)
             {
@@ -182,6 +192,18 @@ public class PlayerControllerEditor : Editor
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.Separator();
+        #endregion
+        _showManipulateControls = EditorGUILayout.BeginFoldoutHeaderGroup(_showManipulateControls, "Manipulation Settings");
+        if (_showManipulateControls)
+        {
+            EditorGUI.indentLevel++;
+            EditorGUILayout.PropertyField(_pMoveObjectSpeed);
+            EditorGUI.indentLevel--;
+        }
+        EditorGUILayout.EndFoldoutHeaderGroup();
+        EditorGUILayout.Separator();
+        #region
+
         #endregion
 
         #region Debug Controls

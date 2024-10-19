@@ -18,6 +18,7 @@ public class PlayerController : MonoBehaviour
         MoveRotateObject
     }
     private PlayerMode _mode = PlayerMode.Move;
+    private bool _IsOnMoveMode { get => _mode == PlayerMode.Move; }
     #endregion
 
     #region Link Variables
@@ -72,10 +73,15 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform _desiredPlace;
     private Interactable _grabbed;
     private Collider _playerCollider;
+    private Quaternion _X_DEGREES_UP;
+    [SerializeField][Range(0, 45)] private float _degreesUp;
     #endregion
 
     #region Manipulate Variables
-    
+    private Vector3 _moveObjectDir;
+    [SerializeField][Min(0)] private float _moveObjectSpeed;
+    private Vector3 _rotateObjectDelta;
+    private float _rotateObjectSpeed;
     #endregion
 
     #region Debug Variables
@@ -94,7 +100,7 @@ public class PlayerController : MonoBehaviour
             _model = GetComponentInChildren<LookToMove>();
         }
         _playerCollider = GetComponentInChildren<Collider>();
-
+        _X_DEGREES_UP = Quaternion.AngleAxis(_degreesUp, -Vector3.right);
         int mapCount = GameManager.Instance.PlayerInput.actions.actionMaps.Count;
         _nameOfActionMaps = new string[mapCount];
         for(int i = 0; i < mapCount; i++)
@@ -194,6 +200,9 @@ public class PlayerController : MonoBehaviour
             case PlayerEvents.EventMethods.OnEnableMoveMode:
                 methodToUse = OnEnableMoveMode;
                 break;
+            case PlayerEvents.EventMethods.OnObjectMove:
+                methodToUse = OnObjectMove;
+                break;
             case PlayerEvents.EventMethods.OnEnableRotationMode:
                 methodToUse = OnEnableRotationMode;
                 break;
@@ -289,31 +298,26 @@ public class PlayerController : MonoBehaviour
 
             _model.UpdateRotation(Quaternion.LookRotation(difference.Flatten()));
 
+            #region Ensure Object Doesn't Go Through Ground
             if (Physics.Raycast(_lookTarget.position, difference.normalized, out RaycastHit hitInfo, difference.magnitude, _groundLayer))
             {
-                _desiredPlace.localPosition = new Vector3(
-                        _desiredPlace.localPosition.x,
-                        hitInfo.distance * 0.5f,
-                        hitInfo.distance);
+                _desiredPlace.localPosition = _X_DEGREES_UP * Vector3.forward * hitInfo.distance;
             }
-            else if (_desiredPlace.position.z < _objDistance)
+            else if (_desiredPlace.position.magnitude < _objDistance)
             {
                 if (Physics.Raycast(_lookTarget.position, difference.normalized, out hitInfo, _objDistance, _groundLayer))
                 {
-                    _desiredPlace.localPosition = new Vector3(
-                            _desiredPlace.localPosition.x,
-                            hitInfo.distance * 0.5f,
-                            hitInfo.distance);
+                    _desiredPlace.localPosition = _X_DEGREES_UP * Vector3.forward * hitInfo.distance;
                 }
                 else
                 {
-                    _desiredPlace.localPosition = new Vector3(
-                            _desiredPlace.localPosition.x,
-                            _objDistance * 0.5f,
-                            _objDistance);
+                    _desiredPlace.localPosition = _X_DEGREES_UP * Vector3.forward * _objDistance;
                 }
                 
             }
+            #endregion
+
+            MoveObject(_moveObjectDir);
         }
         #endregion
 
@@ -323,28 +327,41 @@ public class PlayerController : MonoBehaviour
             _isGrounded = Physics.Raycast(transform.position, -transform.up, _groundRayDistance, _groundLayer);
         }
 
-        if (_mode == PlayerMode.Move)
-        {
-            Vector3 forward = _lookTarget.forward.Flatten();
-            Vector3 right = _lookTarget.right.Flatten();
-
-            _trueMoveDir = forward * _moveDir.y + right * _moveDir.x;
-            if (_trueMoveDir.sqrMagnitude != 0 && _grabbed == null)
-            {
-                _model.UpdateRotation(Quaternion.LookRotation(_trueMoveDir));
-            }
-
-            if (_body.velocity.magnitude < maxSpeed)
-            { // if our velocity is not over the max
-              // and we are not moving an object or rotating it, move us
-                _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
-            }
-        }
+        Move(_moveDir);
+        
         #endregion
 
-        if (_mode == PlayerMode.Move)
+        Look(_lookDelta);
+    }
+
+    #region Move Mode Methods
+    public void Move(Vector2 dir)
+    {
+        if (_lookTarget == null)
         {
-            Look(_lookDelta);
+            Debug.LogError("You require a Look Target that holds all rotation.");
+            return;
+        }
+
+        if (dir.x == 0 && dir.y == 0)
+        {
+            return;
+        }
+
+        Vector3 forward = _lookTarget.forward.Flatten();
+        Vector3 right = _lookTarget.right.Flatten();
+
+        _trueMoveDir = forward * dir.y + right * dir.x;
+
+        if (_grabbed == null)
+        {
+            _model.UpdateRotation(Quaternion.LookRotation(_trueMoveDir));
+        }
+
+        if (_body.velocity.magnitude < maxSpeed)
+        { // if our velocity is not over the max
+          // and we are not moving an object or rotating it, move us
+            _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
         }
     }
     public void Look(Vector2 delta)
@@ -355,10 +372,14 @@ public class PlayerController : MonoBehaviour
             return;
         }
 
+        if (delta.x == 0 && delta.y == 0)
+        {
+            return;
+        }
+
         _lookTarget.rotation *= Quaternion.AngleAxis(delta.x * lookStrength, Vector3.up);
 
         _lookTarget.rotation *= Quaternion.AngleAxis(delta.y * lookStrength, Vector3.right);
-
 
         //clamp the up/down axis
         Vector3 angles = _lookTarget.localEulerAngles;
@@ -374,12 +395,48 @@ public class PlayerController : MonoBehaviour
         }
         _lookTarget.localEulerAngles = angles;
     }
+    #endregion
+
+    #region Other Mode Methods
+    public void MoveObject(Vector3 dir)
+    {
+        if (_grabbed == null)
+        {
+            Debug.LogError("This method shouldn't be called if there is no object to move");
+            return;
+        }
+
+        if (dir.x == 0 && dir.y == 0 && dir.z == 0)
+        { // no need to move it if it already doesn't want to move
+            return;
+        }
+        Vector3 forward = _lookTarget.forward.Flatten();
+        Vector3 right = _lookTarget.right.Flatten();
+
+        Vector3 desiredDisplacement = forward * dir.z + right * dir.x + Vector3.up * dir.y;
+        _desiredPlace.Translate(desiredDisplacement * _moveObjectSpeed * Time.fixedDeltaTime);
+        _objDistance = _desiredPlace.localPosition.magnitude;
+        if (_objDistance > _maxObjDistance)
+        {
+            float scaler = _maxObjDistance / _objDistance;
+            _desiredPlace.localPosition *= scaler;
+            _objDistance = _maxObjDistance;
+        }
+    }
+    #endregion
 
     #region Input Controls
     private delegate void BasicInputController(InputAction.CallbackContext ctx);
     public void OnMove(InputAction.CallbackContext ctx)
     {
-        _moveDir = ctx.ReadValue<Vector2>();
+        if (_IsOnMoveMode)
+        {
+            _moveDir = ctx.ReadValue<Vector2>();
+        }
+        else
+        {
+            _moveDir = Vector2.zero;
+        }
     }
     public void OnJump(InputAction.CallbackContext ctx)
     {
@@ -401,11 +458,19 @@ public class PlayerController : MonoBehaviour
     }
     public void OnLook(InputAction.CallbackContext ctx)
     {
-        if (ctx.canceled ||
-            GameManager.Instance.PlayerInput.currentControlScheme != _nameOfKeyboardMouse ||        
-           (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse && _lookEnabled))
+        if (_IsOnMoveMode)
         {
-            _lookDelta = ctx.ReadValue<Vector2>();
+            bool isOnKeyboard = GameManager.Instance.PlayerInput
+            .currentControlScheme == _nameOfKeyboardMouse;
+
+            if (ctx.canceled || !isOnKeyboard || (isOnKeyboard && _lookEnabled))
+            {
+                _lookDelta = ctx.ReadValue<Vector2>();
+            }
+        }
+        else
+        {
+            _lookDelta = Vector2.zero;
         }
     }
     public void OnGrab(InputAction.CallbackContext ctx)
@@ -469,10 +534,8 @@ public class PlayerController : MonoBehaviour
             {
                 _objDistance = _maxObjDistance;
             }
-            _desiredPlace.localPosition = new Vector3(
-                0,
-                _objDistance * 0.5f,
-                _objDistance);
+            Quaternion rotation = Quaternion.AngleAxis(30, -Vector3.right);
+            _desiredPlace.localPosition = rotation * Vector3.forward * _objDistance;
 
             _grabbed.DesiredPlace = _desiredPlace;
 
@@ -489,49 +552,41 @@ public class PlayerController : MonoBehaviour
     }
     
     #region Manipulate Specific Methods
-    public void OnEnableMoveMode(InputAction.CallbackContext ctx)
+    public void OnEnableMoveMode(InputAction.CallbackContext ctx) 
     {
-        if (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse)
-        { // Keyboard
-            if (ctx.performed)
+        if (ctx.performed)
+        {
+            if (_mode == PlayerMode.Move)
+            {
+                _mode = PlayerMode.MoveObject;
+            }
+            else if (_mode == PlayerMode.RotateObject)
             {
                 _mode = PlayerMode.MoveRotateObject;
-                _enableMoveMode = true;
-                _enableRotationMode = true;
-            }
-            else
-            {
-                _mode = PlayerMode.Move;
-                _enableMoveMode = false;
-                _enableRotationMode = false;
             }
         }
         else
-        { // Controller
-            if (ctx.performed)
+        {
+            if (_mode == PlayerMode.MoveObject)
             {
-                if (_mode == PlayerMode.Move)
-                {
-                    _mode = PlayerMode.MoveObject;
-                }
-                else if (_mode == PlayerMode.RotateObject)
-                {
-                    _mode = PlayerMode.MoveRotateObject;
-                }
-                _enableMoveMode = true;
+                _mode = PlayerMode.Move;
             }
-            else
+            else if (_mode == PlayerMode.MoveRotateObject)
             {
-                if (_mode == PlayerMode.MoveObject)
-                {
-                    _mode = PlayerMode.Move;
-                }
-                else if (_mode == PlayerMode.MoveRotateObject)
-                {
-                    _mode = PlayerMode.RotateObject;
-                }
-                _enableMoveMode = false;
+                _mode = PlayerMode.RotateObject;
             }
+            _moveObjectDir = Vector3.zero;
+        }
+    }
+    public void OnObjectMove(InputAction.CallbackContext ctx)
+    {
+        if (!_IsOnMoveMode && _mode != PlayerMode.RotateObject)
+        {
+            _moveObjectDir = ctx.ReadValue<Vector3>().normalized;
+        }
+        else
+        {
+            _moveObjectDir = Vector3.zero;
         }
     }
     public void OnEnableRotationMode(InputAction.CallbackContext ctx)
@@ -546,7 +601,6 @@ public class PlayerController : MonoBehaviour
             {
                 _mode = PlayerMode.MoveRotateObject;
             }
-            _enableRotationMode = true;
         }
         else
         {
@@ -558,7 +612,6 @@ public class PlayerController : MonoBehaviour
             {
                 _mode = PlayerMode.MoveObject;
             }
-            _enableRotationMode = false;
         }
         
     }

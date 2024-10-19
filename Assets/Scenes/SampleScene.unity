@@ -752,6 +752,14 @@ MonoBehaviour:
     <SubscribeTo>k__BackingField: 0
     <Method>k__BackingField: 4
     <ActionMap>k__BackingField: 2
+  - <ActionName>k__BackingField: EnableMoveMode
+    <SubscribeTo>k__BackingField: 2
+    <Method>k__BackingField: 5
+    <ActionMap>k__BackingField: 1
+  - <ActionName>k__BackingField: ObjectMove
+    <SubscribeTo>k__BackingField: 2
+    <Method>k__BackingField: 6
+    <ActionMap>k__BackingField: 1
   _nameOfKeyboardMouse: Keyboard&Mouse
   _moveDir: {x: 0, y: 0}
   _trueMoveDir: {x: 0, y: 0, z: 0}
@@ -777,6 +785,8 @@ MonoBehaviour:
   _maxObjDistance: 10
   _objDistance: 5
   _desiredPlace: {fileID: 1063579738}
+  _degreesUp: 30
+  _moveObjectSpeed: 1
   _showGroundRay: 1
   _showGrabRay: 0
 --- !u!54 &902008282
