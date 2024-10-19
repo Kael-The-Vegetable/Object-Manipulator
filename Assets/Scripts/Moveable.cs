@@ -7,7 +7,7 @@ public class Moveable : MonoBehaviour, Interactable
 {
     [SerializeField] private Rigidbody _body;
     [SerializeField][Range(1, 10)] private float _speed;
-    [SerializeField][Range(0, 1)] private float _rotationLerp;
+    [SerializeField][Range(0, 100)] private float _rotationPower;
     private float _originalDrag;
     public Transform DesiredPlace 
     { 
@@ -49,7 +49,7 @@ public class Moveable : MonoBehaviour, Interactable
             
             //rotation
             Quaternion desiredRotation = Quaternion.Euler(_desiredPlace.localEulerAngles);
-            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, _rotationLerp);
+            transform.rotation = Quaternion.Slerp(transform.rotation, desiredRotation, _rotationPower * Time.deltaTime);
         }
     }
 }

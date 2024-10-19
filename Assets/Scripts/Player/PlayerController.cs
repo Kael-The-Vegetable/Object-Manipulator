@@ -10,7 +10,14 @@ public class PlayerController : MonoBehaviour
 {
     #region General Variables
     [SerializeField] private Rigidbody _body;
-    public Rigidbody Body { get { return _body; } }
+    private enum PlayerMode
+    {
+        Move,
+        MoveObject,
+        RotateObject,
+        MoveRotateObject
+    }
+    private PlayerMode _mode = PlayerMode.Move;
     #endregion
 
     #region Link Variables
@@ -18,8 +25,8 @@ public class PlayerController : MonoBehaviour
     private bool _playerIsLinked = false;
     private bool _manipulateIsLinked = false;
     [SerializeField] private List<PlayerEvents> _events = new List<PlayerEvents>();
-    public List<PlayerEvents> Events 
-    { 
+    public List<PlayerEvents> Events
+    {
         get => _events;
         set
         {
@@ -65,6 +72,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private Transform _desiredPlace;
     private Interactable _grabbed;
     private Collider _playerCollider;
+    #endregion
+
+    #region Manipulate Variables
+    
     #endregion
 
     #region Debug Variables
@@ -179,6 +190,12 @@ public class PlayerController : MonoBehaviour
                 break;
             case PlayerEvents.EventMethods.OnGrab:
                 methodToUse = OnGrab;
+                break;
+            case PlayerEvents.EventMethods.OnEnableMoveMode:
+                methodToUse = OnEnableMoveMode;
+                break;
+            case PlayerEvents.EventMethods.OnEnableRotationMode:
+                methodToUse = OnEnableRotationMode;
                 break;
         }
 
@@ -306,22 +323,29 @@ public class PlayerController : MonoBehaviour
             _isGrounded = Physics.Raycast(transform.position, -transform.up, _groundRayDistance, _groundLayer);
         }
 
-        Vector3 forward = _lookTarget.forward.Flatten();
-        Vector3 right   = _lookTarget.right.Flatten();
-
-        _trueMoveDir = forward * _moveDir.y + right * _moveDir.x;
-        if (_trueMoveDir.sqrMagnitude != 0 && _grabbed == null)
+        if (_mode == PlayerMode.Move)
         {
-            _model.UpdateRotation(Quaternion.LookRotation(_trueMoveDir));
-        }
+            Vector3 forward = _lookTarget.forward.Flatten();
+            Vector3 right = _lookTarget.right.Flatten();
 
-        if (_body.velocity.magnitude < maxSpeed)
-        {
-            _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
+            _trueMoveDir = forward * _moveDir.y + right * _moveDir.x;
+            if (_trueMoveDir.sqrMagnitude != 0 && _grabbed == null)
+            {
+                _model.UpdateRotation(Quaternion.LookRotation(_trueMoveDir));
+            }
+
+            if (_body.velocity.magnitude < maxSpeed)
+            { // if our velocity is not over the max
+              // and we are not moving an object or rotating it, move us
+                _body.AddForce(_trueMoveDir * speed * (1 - _body.velocity.magnitude / maxSpeed));
+            }
         }
         #endregion
 
-        Look(_lookDelta);
+        if (_mode == PlayerMode.Move)
+        {
+            Look(_lookDelta);
+        }
     }
     public void Look(Vector2 delta)
     {
@@ -463,6 +487,83 @@ public class PlayerController : MonoBehaviour
         }
         return false;
     }
+    
+    #region Manipulate Specific Methods
+    public void OnEnableMoveMode(InputAction.CallbackContext ctx)
+    {
+        if (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse)
+        { // Keyboard
+            if (ctx.performed)
+            {
+                _mode = PlayerMode.MoveRotateObject;
+                _enableMoveMode = true;
+                _enableRotationMode = true;
+            }
+            else
+            {
+                _mode = PlayerMode.Move;
+                _enableMoveMode = false;
+                _enableRotationMode = false;
+            }
+        }
+        else
+        { // Controller
+            if (ctx.performed)
+            {
+                if (_mode == PlayerMode.Move)
+                {
+                    _mode = PlayerMode.MoveObject;
+                }
+                else if (_mode == PlayerMode.RotateObject)
+                {
+                    _mode = PlayerMode.MoveRotateObject;
+                }
+                _enableMoveMode = true;
+            }
+            else
+            {
+                if (_mode == PlayerMode.MoveObject)
+                {
+                    _mode = PlayerMode.Move;
+                }
+                else if (_mode == PlayerMode.MoveRotateObject)
+                {
+                    _mode = PlayerMode.RotateObject;
+                }
+                _enableMoveMode = false;
+            }
+        }
+    }
+    public void OnEnableRotationMode(InputAction.CallbackContext ctx)
+    {
+        if (ctx.performed)
+        {
+            if (_mode == PlayerMode.Move)
+            {
+                _mode = PlayerMode.RotateObject;
+            }
+            else if (_mode == PlayerMode.MoveObject)
+            {
+                _mode = PlayerMode.MoveRotateObject;
+            }
+            _enableRotationMode = true;
+        }
+        else
+        {
+            if (_mode == PlayerMode.RotateObject)
+            {
+                _mode = PlayerMode.Move;
+            }
+            else if (_mode == PlayerMode.MoveRotateObject)
+            {
+                _mode = PlayerMode.MoveObject;
+            }
+            _enableRotationMode = false;
+        }
+        
+    }
+    #endregion
+
     #endregion
 
     private void OnDrawGizmos()

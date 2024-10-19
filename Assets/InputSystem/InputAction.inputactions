@@ -289,6 +289,15 @@
                     "processors": "",
                     "interactions": "",
                     "initialStateCheck": false
+                },
+                {
+                    "name": "EnableMoveMode",
+                    "type": "Button",
+                    "id": "74ba9b13-4e41-49fb-98f7-4a9cc3509307",
+                    "expectedControlType": "",
+                    "processors": "",
+                    "interactions": "",
+                    "initialStateCheck": false
                 }
             ],
             "bindings": [
@@ -476,6 +485,28 @@
                     "processors": "",
                     "groups": ";Gamepad",
                     "action": "Grab",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "4f90857f-28c0-41b5-9dd7-5fb11888675c",
+                    "path": "<Keyboard>/leftShift",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Keyboard&Mouse",
+                    "action": "EnableMoveMode",
+                    "isComposite": false,
+                    "isPartOfComposite": false
+                },
+                {
+                    "name": "",
+                    "id": "3e1ec814-08ca-449b-a12b-4d4cd1b1a146",
+                    "path": "<Gamepad>/rightTrigger",
+                    "interactions": "",
+                    "processors": "",
+                    "groups": ";Gamepad",
+                    "action": "EnableMoveMode",
                     "isComposite": false,
                     "isPartOfComposite": false
                 }

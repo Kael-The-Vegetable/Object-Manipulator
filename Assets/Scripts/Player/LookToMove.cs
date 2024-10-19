@@ -4,10 +4,10 @@ using UnityEngine;
 
 public class LookToMove : MonoBehaviour
 {
-    [Range(0, 1)] public float lerpVal;
+    [Range(0, 100)] public float rotationPower;
     public void UpdateRotation(Quaternion q)
     {
-        transform.rotation = Quaternion.Lerp(transform.rotation, q, lerpVal);
+        transform.rotation = Quaternion.Lerp(transform.rotation, q, rotationPower * Time.deltaTime);
     }
     public void SetRotation(Quaternion q)
     {
