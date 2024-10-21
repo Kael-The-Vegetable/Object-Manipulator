@@ -40,8 +40,7 @@ public class PlayerControllerEditor : Editor
 
     // grab variables
     private SerializedProperty _pInteractLayer;
-    private SerializedProperty _pDegreesUp;
-    private SerializedProperty _pObjectDistance;
+    private SerializedProperty _pOriginalDesiredPlace;
     private SerializedProperty _pMaxDistance;
     private SerializedProperty _pDesiredPlace;
 
@@ -81,8 +80,7 @@ public class PlayerControllerEditor : Editor
 
         // for grab private variables
         _pInteractLayer  = serializedObject.FindProperty("_interactableLayer");
-        _pDegreesUp      = serializedObject.FindProperty("_degreesUp");
-        _pObjectDistance = serializedObject.FindProperty("_objDistance");
+        _pOriginalDesiredPlace = serializedObject.FindProperty("_originalDesiredPlace");
         _pMaxDistance    = serializedObject.FindProperty("_maxObjDistance");
         _pDesiredPlace   = serializedObject.FindProperty("_desiredPlace");
 
@@ -177,7 +175,6 @@ public class PlayerControllerEditor : Editor
         {
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(_pInteractLayer);
-            EditorGUILayout.PropertyField(_pDegreesUp);
             EditorGUILayout.PropertyField(_pDesiredPlace);
             if (_pDesiredPlace.objectReferenceValue == null)
             {
@@ -186,7 +183,7 @@ public class PlayerControllerEditor : Editor
             else
             {
                 EditorGUILayout.PropertyField(_pMaxDistance);
-                EditorGUILayout.PropertyField(_pObjectDistance);
+                EditorGUILayout.PropertyField(_pOriginalDesiredPlace);
             }
             EditorGUI.indentLevel--;
         }

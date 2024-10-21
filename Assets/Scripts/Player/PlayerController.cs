@@ -68,12 +68,26 @@ public class PlayerController : MonoBehaviour
     #region Grab Variables
     [SerializeField] private LayerMask _interactableLayer;
     [SerializeField][Min(0)] private float _maxObjDistance;
-    [SerializeField][Min(0)] private float _objDistance;
+    private float _ObjDistance
+    {
+        get => _originalDesiredPlace.magnitude;
+        set
+        {
+            float temp = value / _ObjDistance;
+            _originalDesiredPlace *= temp;
+        }
+    }
+    private Quaternion _ObjRotation
+    {
+        get
+        {
+            return Quaternion.LookRotation(_originalDesiredPlace);
+        }
+    }
+    [SerializeField] private Vector3 _originalDesiredPlace;
     [SerializeField] private Transform _desiredPlace;
     private Interactable _grabbed;
     private Collider _playerCollider;
-    private Quaternion _X_DEGREES_UP;
-    [SerializeField][Range(0, 45)] private float _degreesUp;
     #endregion
 
     #region Manipulate Variables
@@ -99,7 +113,6 @@ public class PlayerController : MonoBehaviour
             _model = GetComponentInChildren<LookToMove>();
         }
         _playerCollider = GetComponentInChildren<Collider>();
-        _X_DEGREES_UP = Quaternion.AngleAxis(_degreesUp, -Vector3.right);
         int mapCount = GameManager.Instance.PlayerInput.actions.actionMaps.Count;
         _nameOfActionMaps = new string[mapCount];
         for(int i = 0; i < mapCount; i++)
@@ -293,30 +306,33 @@ public class PlayerController : MonoBehaviour
         #region Grabbed Object
         if (_grabbed != null)
         {
+            MoveObject(_moveObjectDir);
+
             Vector3 difference = _desiredPlace.position - _lookTarget.position;
 
             _model.UpdateRotation(Quaternion.LookRotation(difference.Flatten()));
 
             #region Ensure Object Doesn't Go Through Ground
+            Debug.DrawRay(_lookTarget.position, difference, Color.red);
             if (Physics.Raycast(_lookTarget.position, difference.normalized, out RaycastHit hitInfo, difference.magnitude, _groundLayer))
             {
-                _desiredPlace.localPosition = _X_DEGREES_UP * Vector3.forward * hitInfo.distance;
+                _desiredPlace.localPosition = _ObjRotation * Vector3.forward * hitInfo.distance;
             }
-            else if (_desiredPlace.position.magnitude < _objDistance)
+            else if (_desiredPlace.position.magnitude < _ObjDistance)
             {
-                if (Physics.Raycast(_lookTarget.position, difference.normalized, out hitInfo, _objDistance, _groundLayer))
+                if (Physics.Raycast(_lookTarget.position, difference.normalized, out hitInfo, _ObjDistance, _groundLayer))
                 {
-                    _desiredPlace.localPosition = _X_DEGREES_UP * Vector3.forward * hitInfo.distance;
+                    _desiredPlace.localPosition = _ObjRotation * Vector3.forward * hitInfo.distance;
                 }
                 else
                 {
-                    _desiredPlace.localPosition = _X_DEGREES_UP * Vector3.forward * _objDistance;
+                    _desiredPlace.localPosition = _originalDesiredPlace;
                 }
                 
             }
             #endregion
 
-            MoveObject(_moveObjectDir);
+            
         }
         #endregion
 
@@ -413,13 +429,12 @@ public class PlayerController : MonoBehaviour
         Vector3 right = _lookTarget.right.Flatten();
 
         Vector3 desiredDisplacement = forward * dir.z + right * dir.x + Vector3.up * dir.y;
-        _desiredPlace.Translate(desiredDisplacement * _moveObjectSpeed * Time.fixedDeltaTime);
-        _objDistance = _desiredPlace.localPosition.magnitude;
-        if (_objDistance > _maxObjDistance)
+        _desiredPlace.Translate(dir * _moveObjectSpeed * Time.fixedDeltaTime, Space.World);
+        _originalDesiredPlace = _desiredPlace.localPosition;
+        if (_ObjDistance > _maxObjDistance)
         {
-            float scaler = _maxObjDistance / _objDistance;
-            _desiredPlace.localPosition *= scaler;
-            _objDistance = _maxObjDistance;
+            _ObjDistance = _maxObjDistance;
+            _desiredPlace.localPosition = _originalDesiredPlace;
         }
     }
     #endregion
@@ -528,14 +543,14 @@ public class PlayerController : MonoBehaviour
     {
         if (hitInfo.transform.TryGetComponent(out _grabbed))
         {
-            _objDistance = (transform.position - hitInfo.transform.position).magnitude;
-            if (_objDistance > _maxObjDistance)
+            _originalDesiredPlace = (transform.position - hitInfo.transform.position);
+            if (_ObjDistance > _maxObjDistance)
             {
-                _objDistance = _maxObjDistance;
+                _ObjDistance = _maxObjDistance;
             }
             Quaternion rotation = Quaternion.AngleAxis(30, -Vector3.right);
-            _desiredPlace.localPosition = rotation * Vector3.forward * _objDistance;
-
+            _desiredPlace.localPosition = rotation * Vector3.forward * _ObjDistance;
+            _originalDesiredPlace = _desiredPlace.localPosition;
             _grabbed.DesiredPlace = _desiredPlace;
 
             Physics.IgnoreCollision(_playerCollider, _grabbed.gameObject.GetComponent<Collider>(), true);
