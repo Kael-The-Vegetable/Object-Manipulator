@@ -786,7 +786,7 @@ MonoBehaviour:
   _objDistance: 5
   _desiredPlace: {fileID: 1063579738}
   _degreesUp: 30
-  _moveObjectSpeed: 1
+  _moveObjectSpeed: 10
   _showGroundRay: 1
   _showGrabRay: 0
 --- !u!54 &902008282
