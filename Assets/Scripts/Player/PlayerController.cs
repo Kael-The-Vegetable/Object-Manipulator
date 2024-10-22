@@ -93,6 +93,7 @@ public class PlayerController : MonoBehaviour
     #region Manipulate Variables
     private Vector3 _moveObjectDir;
     [SerializeField][Min(0)] private float _moveObjectSpeed;
+    [SerializeField][Range(0, 30)] private float _scrollSensitivity;
     private Vector3 _rotateObjectDelta;
     private float _rotateObjectSpeed;
     #endregion
@@ -429,7 +430,7 @@ public class PlayerController : MonoBehaviour
         Vector3 right = _lookTarget.right.Flatten();
 
         Vector3 desiredDisplacement = forward * dir.z + right * dir.x + Vector3.up * dir.y;
-        _desiredPlace.Translate(dir * _moveObjectSpeed * Time.fixedDeltaTime, Space.World);
+        _desiredPlace.Translate(desiredDisplacement * _moveObjectSpeed * Time.fixedDeltaTime, Space.World);
         _originalDesiredPlace = _desiredPlace.localPosition;
         if (_ObjDistance > _maxObjDistance)
         {
@@ -596,7 +597,15 @@ public class PlayerController : MonoBehaviour
     {
         if (!_IsOnMoveMode && _mode != PlayerMode.RotateObject)
         {
-            _moveObjectDir = ctx.ReadValue<Vector3>().normalized;
+            Vector3 val = ctx.ReadValue<Vector3>().normalized;
+            if (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse)
+            {
+                _moveObjectDir = new Vector3(val.x, val.y, val.z * _scrollSensitivity);
+            }
+            else
+            {
+                _moveObjectDir = val;
+            }
         }
         else
         {

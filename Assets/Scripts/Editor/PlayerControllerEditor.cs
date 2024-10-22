@@ -46,6 +46,7 @@ public class PlayerControllerEditor : Editor
 
     // manipulation variables
     private SerializedProperty _pMoveObjectSpeed;
+    private SerializedProperty _pScrollSpeed;
 
     // debug variables
     private SerializedProperty _pShowGroundCast;
@@ -86,6 +87,7 @@ public class PlayerControllerEditor : Editor
 
         // for manipulate private variables
         _pMoveObjectSpeed = serializedObject.FindProperty("_moveObjectSpeed");
+        _pScrollSpeed     = serializedObject.FindProperty("_scrollSensitivity");
 
         // for debug private variables
         _pShowGroundCast = serializedObject.FindProperty("_showGroundRay");
@@ -190,17 +192,18 @@ public class PlayerControllerEditor : Editor
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.Separator();
         #endregion
+
+        #region Manipulating
         _showManipulateControls = EditorGUILayout.BeginFoldoutHeaderGroup(_showManipulateControls, "Manipulation Settings");
         if (_showManipulateControls)
         {
             EditorGUI.indentLevel++;
             EditorGUILayout.PropertyField(_pMoveObjectSpeed);
+            EditorGUILayout.PropertyField(_pScrollSpeed);
             EditorGUI.indentLevel--;
         }
         EditorGUILayout.EndFoldoutHeaderGroup();
         EditorGUILayout.Separator();
-        #region
-
         #endregion
 
         #region Debug Controls

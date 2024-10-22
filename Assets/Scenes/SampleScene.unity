@@ -782,11 +782,11 @@ MonoBehaviour:
   _interactableLayer:
     serializedVersion: 2
     m_Bits: 64
-  _maxObjDistance: 10
-  _objDistance: 5
+  _maxObjDistance: 15
+  _originalDesiredPlace: {x: 0, y: 0, z: 0}
   _desiredPlace: {fileID: 1063579738}
-  _degreesUp: 30
   _moveObjectSpeed: 10
+  _scrollSensitivity: 4
   _showGroundRay: 1
   _showGrabRay: 0
 --- !u!54 &902008282
