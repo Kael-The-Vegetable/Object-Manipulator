@@ -13,17 +13,13 @@ public class PlayerController : MonoBehaviour
     {
         Move,
         MoveObject,
-        RotateObject,
-        MoveRotateObject
+        RotateObject
     }
     private PlayerMode _mode = PlayerMode.Move;
     private bool _IsOnMoveMode { get => _mode == PlayerMode.Move; }
     #endregion
 
     #region Link Variables
-    // I had to split these as for some reason both actionmaps are considered active when I have events linked.
-    private bool _playerIsLinked = false;
-    private bool _manipulateIsLinked = false;
     [SerializeField] private List<PlayerEvents> _events = new List<PlayerEvents>();
     public List<PlayerEvents> Events
     {
@@ -36,7 +32,6 @@ public class PlayerController : MonoBehaviour
         }
     }
     [SerializeField] private string _nameOfKeyboardMouse;
-    private string[] _nameOfActionMaps;
     #endregion
 
     #region Movement Variables
@@ -114,13 +109,6 @@ public class PlayerController : MonoBehaviour
             _model = GetComponentInChildren<LookToMove>();
         }
         _playerCollider = GetComponentInChildren<Collider>();
-        int mapCount = GameManager.Instance.PlayerInput.actions.actionMaps.Count;
-        _nameOfActionMaps = new string[mapCount];
-        for(int i = 0; i < mapCount; i++)
-        {
-            _nameOfActionMaps[i] = GameManager.Instance.PlayerInput.actions.actionMaps[i].name;
-        }
-
     }
     private void OnEnable()
     {
@@ -134,49 +122,23 @@ public class PlayerController : MonoBehaviour
     #region Link Controls
     public void LinkControls(bool linkUp)
     {
-        if (linkUp)
+        if (GameManager.Instance != null)
         {
-            StartCoroutine(Link());
-        }
-        else
-        {
-            if (GameManager.Instance != null)
+            if (linkUp)
+            {
+                Link();
+            }
+            else
             {
                 UnLink();
             }
-            _playerIsLinked = false;
-            _manipulateIsLinked = false;
-            
         }
     }
-    private IEnumerator Link()
+    private void Link()
     {
-        yield return null;
-        if (GameManager.Instance != null)
+        for (int i = 0; i < _events.Count; i++)
         {
-            for (int i = 0; i < _events.Count; i++)
-            {
-                string actionMap = _events[i].ActionMap.ToString();
-                if (
-                    (actionMap != _nameOfActionMaps[1]
-                    && GameManager.Instance.PlayerInput
-                        .currentActionMap.name == _nameOfActionMaps[0])
-                  ||
-                    (actionMap != _nameOfActionMaps[0]
-                    && GameManager.Instance.PlayerInput
-                        .currentActionMap.name == _nameOfActionMaps[1]))
-                {
-                    LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, actionMap, true);
-                }
-            }
-            if (GameManager.Instance.PlayerInput.currentActionMap.name == _nameOfActionMaps[0])
-            {
-                _playerIsLinked = true;
-            }
-            else if (GameManager.Instance.PlayerInput.currentActionMap.name == _nameOfActionMaps[1])
-            {
-                _manipulateIsLinked = true;
-            }
+            LinkMethod(_events[i].Method, _events[i].ActionName, _events[i].SubscribeTo, _events[i].ActionMap.ToString(), true);
         }
     }
     private void UnLink()
@@ -219,32 +181,21 @@ public class PlayerController : MonoBehaviour
             case PlayerEvents.EventMethods.OnEnableRotationMode:
                 methodToUse = OnEnableRotationMode;
                 break;
+            case PlayerEvents.EventMethods.OnObjectRotate:
+                methodToUse = OnObjectRotate;
+                break;
         }
 
-        if (map == "Both")
+        bool found = false;
+        for (int i = 0; i < GameManager.Instance.ActionMaps.Length && !found; i++)
         {
-            bool found = false;
-            for (int i = 0; i < _nameOfActionMaps.Length && !found; i++)
+            if (map == GameManager.Instance.ActionMaps[i].name)
             {
-                if (GameManager.Instance.PlayerInput.currentActionMap.name == _nameOfActionMaps[i])
-                {
-                    found = true;
-                    ID = i;
-                }
+                found = true;
+                ID = i;
             }
         }
-        else
-        {
-            bool found = false;
-            for (int i = 0; i < _nameOfActionMaps.Length && !found; i++)
-            {
-                if (map == _nameOfActionMaps[i])
-                {
-                    found = true;
-                    ID = i;
-                }
-            }
-        }
+        
 
         switch (type)
         {
@@ -308,13 +259,13 @@ public class PlayerController : MonoBehaviour
         if (_grabbed != null)
         {
             MoveObject(_moveObjectDir);
+            RotateObject(_rotateObjectDelta);
 
             Vector3 difference = _desiredPlace.position - _lookTarget.position;
 
             _model.UpdateRotation(Quaternion.LookRotation(difference.Flatten()));
 
             #region Ensure Object Doesn't Go Through Ground
-            Debug.DrawRay(_lookTarget.position, difference, Color.red);
             if (Physics.Raycast(_lookTarget.position, difference.normalized, out RaycastHit hitInfo, difference.magnitude, _groundLayer))
             {
                 _desiredPlace.localPosition = _ObjRotation * Vector3.forward * hitInfo.distance;
@@ -428,8 +379,9 @@ public class PlayerController : MonoBehaviour
         }
         Vector3 forward = _lookTarget.forward.Flatten();
         Vector3 right = _lookTarget.right.Flatten();
+        Vector3 up = _lookTarget.up;
 
-        Vector3 desiredDisplacement = forward * dir.z + right * dir.x + Vector3.up * dir.y;
+        Vector3 desiredDisplacement = forward * dir.z + right * dir.x + up * dir.y;
         _desiredPlace.Translate(desiredDisplacement * _moveObjectSpeed * Time.fixedDeltaTime, Space.World);
         _originalDesiredPlace = _desiredPlace.localPosition;
         if (_ObjDistance > _maxObjDistance)
@@ -437,6 +389,20 @@ public class PlayerController : MonoBehaviour
             _ObjDistance = _maxObjDistance;
             _desiredPlace.localPosition = _originalDesiredPlace;
         }
+    }
+    public void RotateObject(Vector3 delta)
+    {
+        if (_grabbed == null)
+        {
+            Debug.LogError("This method shouldn't be called if there is no object to rotate");
+            return;
+        }
+
+        if (delta.x == 0 && delta.y == 0 && delta.z == 0)
+        { // no need to rotate it if it already doesn't want to rotate
+            return;
+        }
+        _desiredPlace.Rotate(delta);
     }
     #endregion
 
@@ -499,7 +465,6 @@ public class PlayerController : MonoBehaviour
                 
                 float maxRayDistance = _maxObjDistance + (transform.position - Camera.main.transform.position).magnitude;
                 // this should get a ray that is _maxObjDistance from the player not camera.
-                Debug.DrawRay(Camera.main.transform.position, ray.direction * maxRayDistance, Color.red, 10);
                 if (Physics.Raycast(ray, out RaycastHit hitInfo, maxRayDistance, _interactableLayer))
                 {
                     GrabHitObject(hitInfo);
@@ -533,11 +498,6 @@ public class PlayerController : MonoBehaviour
             Physics.IgnoreCollision(_playerCollider, _grabbed.gameObject.GetComponent<Collider>(), false);
 
             _grabbed = null;
-            GameManager.ChangeActionMap(_nameOfActionMaps[0]);
-            if (!_playerIsLinked)
-            {
-                LinkControls(true);
-            }
         }
     }
     public bool GrabHitObject(RaycastHit hitInfo)
@@ -556,28 +516,18 @@ public class PlayerController : MonoBehaviour
 
             Physics.IgnoreCollision(_playerCollider, _grabbed.gameObject.GetComponent<Collider>(), true);
 
-            GameManager.ChangeActionMap(_nameOfActionMaps[1]);
-            if (!_manipulateIsLinked)
-            {
-                LinkControls(true);
-            }
             return true;
         }
         return false;
     }
-    
-    #region Manipulate Specific Methods
-    public void OnEnableMoveMode(InputAction.CallbackContext ctx) 
+    public void OnEnableMoveMode(InputAction.CallbackContext ctx)
     {
-        if (ctx.performed)
+        if (ctx.performed && _grabbed != null)
         {
             if (_mode == PlayerMode.Move)
             {
                 _mode = PlayerMode.MoveObject;
-            }
-            else if (_mode == PlayerMode.RotateObject)
-            {
-                _mode = PlayerMode.MoveRotateObject;
+                GameManager.Instance.ChangeActionMap(GameManager.Instance.ActionMaps[1].name);
             }
         }
         else
@@ -585,30 +535,8 @@ public class PlayerController : MonoBehaviour
             if (_mode == PlayerMode.MoveObject)
             {
                 _mode = PlayerMode.Move;
+                GameManager.Instance.ChangeActionMap(GameManager.Instance.ActionMaps[0].name);
             }
-            else if (_mode == PlayerMode.MoveRotateObject)
-            {
-                _mode = PlayerMode.RotateObject;
-            }
-            _moveObjectDir = Vector3.zero;
-        }
-    }
-    public void OnObjectMove(InputAction.CallbackContext ctx)
-    {
-        if (!_IsOnMoveMode && _mode != PlayerMode.RotateObject)
-        {
-            Vector3 val = ctx.ReadValue<Vector3>().normalized;
-            if (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse)
-            {
-                _moveObjectDir = new Vector3(val.x, val.y, val.z * _scrollSensitivity);
-            }
-            else
-            {
-                _moveObjectDir = val;
-            }
-        }
-        else
-        {
             _moveObjectDir = Vector3.zero;
         }
     }
@@ -619,10 +547,7 @@ public class PlayerController : MonoBehaviour
             if (_mode == PlayerMode.Move)
             {
                 _mode = PlayerMode.RotateObject;
-            }
-            else if (_mode == PlayerMode.MoveObject)
-            {
-                _mode = PlayerMode.MoveRotateObject;
+                GameManager.Instance.ChangeActionMap(GameManager.Instance.ActionMaps[2].name);
             }
         }
         else
@@ -630,13 +555,45 @@ public class PlayerController : MonoBehaviour
             if (_mode == PlayerMode.RotateObject)
             {
                 _mode = PlayerMode.Move;
+                GameManager.Instance.ChangeActionMap(GameManager.Instance.ActionMaps[0].name);
             }
-            else if (_mode == PlayerMode.MoveRotateObject)
-            {
-                _mode = PlayerMode.MoveObject;
-            }
+            _rotateObjectDelta = Vector3.zero;
         }
-        
+    }
+
+    #region Manipulate Specific Methods
+    public void OnObjectMove(InputAction.CallbackContext ctx)
+    {
+        if (_mode == PlayerMode.MoveObject)
+        {
+            _moveObjectDir = ChangeVector3(ctx.ReadValue<Vector3>().normalized);
+        }
+        else
+        {
+            _moveObjectDir = Vector3.zero;
+        }
+    }
+    public void OnObjectRotate(InputAction.CallbackContext ctx)
+    {
+        if (_mode == PlayerMode.RotateObject)
+        {
+            _rotateObjectDelta = ChangeVector3(ctx.ReadValue<Vector3>().normalized);
+        }
+        else
+        {
+            _rotateObjectDelta = Vector3.zero;
+        }
+    }
+    private Vector3 ChangeVector3(Vector3 value)
+    {
+        if (GameManager.Instance.PlayerInput.currentControlScheme == _nameOfKeyboardMouse)
+        {
+            return new Vector3(value.x, value.y, value.z * _scrollSensitivity);
+        }
+        else
+        {
+            return value;
+        }
     }
     #endregion
 

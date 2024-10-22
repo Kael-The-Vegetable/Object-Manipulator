@@ -280,7 +280,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c852af001dae0064e9acaa832f1dadb7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -446,7 +446,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 10303, guid: 0000000000000000f000000000000000, type: 0}
+  - {fileID: 2100000, guid: c852af001dae0064e9acaa832f1dadb7, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -735,31 +735,47 @@ MonoBehaviour:
   - <ActionName>k__BackingField: Move
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 0
-    <ActionMap>k__BackingField: 2
+    <ActionMap>k__BackingField: 0
   - <ActionName>k__BackingField: Jump
     <SubscribeTo>k__BackingField: 0
     <Method>k__BackingField: 1
-    <ActionMap>k__BackingField: 2
+    <ActionMap>k__BackingField: 0
   - <ActionName>k__BackingField: EnableLook
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 2
-    <ActionMap>k__BackingField: 2
+    <ActionMap>k__BackingField: 0
   - <ActionName>k__BackingField: Look
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 3
-    <ActionMap>k__BackingField: 2
+    <ActionMap>k__BackingField: 0
   - <ActionName>k__BackingField: Grab
     <SubscribeTo>k__BackingField: 0
     <Method>k__BackingField: 4
-    <ActionMap>k__BackingField: 2
-  - <ActionName>k__BackingField: EnableMoveMode
-    <SubscribeTo>k__BackingField: 2
+    <ActionMap>k__BackingField: 0
+  - <ActionName>k__BackingField: MoveObjectMode
+    <SubscribeTo>k__BackingField: 0
+    <Method>k__BackingField: 5
+    <ActionMap>k__BackingField: 0
+  - <ActionName>k__BackingField: RotateObjectMode
+    <SubscribeTo>k__BackingField: 0
+    <Method>k__BackingField: 7
+    <ActionMap>k__BackingField: 0
+  - <ActionName>k__BackingField: PlayerMode
+    <SubscribeTo>k__BackingField: 1
     <Method>k__BackingField: 5
     <ActionMap>k__BackingField: 1
   - <ActionName>k__BackingField: ObjectMove
     <SubscribeTo>k__BackingField: 2
     <Method>k__BackingField: 6
     <ActionMap>k__BackingField: 1
+  - <ActionName>k__BackingField: PlayerMode
+    <SubscribeTo>k__BackingField: 1
+    <Method>k__BackingField: 7
+    <ActionMap>k__BackingField: 2
+  - <ActionName>k__BackingField: ObjectRotation
+    <SubscribeTo>k__BackingField: 2
+    <Method>k__BackingField: 8
+    <ActionMap>k__BackingField: 2
   _nameOfKeyboardMouse: Keyboard&Mouse
   _moveDir: {x: 0, y: 0}
   _trueMoveDir: {x: 0, y: 0, z: 0}
@@ -1246,8 +1262,28 @@ MonoBehaviour:
     m_ActionName: Player/Grab[/Mouse/leftButton]
   - m_PersistentCalls:
       m_Calls: []
-    m_ActionId: 439072f9-985e-4a00-a2fd-2d0e0aec4407
-    m_ActionName: Manipulate/Move[/Keyboard/w,/Keyboard/upArrow,/Keyboard/s,/Keyboard/downArrow,/Keyboard/a,/Keyboard/leftArrow,/Keyboard/d,/Keyboard/rightArrow]
+    m_ActionId: 86e30824-b554-4755-92f2-d871e0c6f156
+    m_ActionName: Player/EnableMoveMode[/Keyboard/leftShift]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 74ba9b13-4e41-49fb-98f7-4a9cc3509307
+    m_ActionName: Manipulate/EnableMoveMode[/Keyboard/leftShift]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: 9a4321ae-6852-4a80-92b9-b991f91b5959
+    m_ActionName: Manipulate/ObjectMove[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Mouse/scroll/up,/Mouse/scroll/down]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: f121cf99-c5e1-43a5-bee8-62cdf29a1afc
+    m_ActionName: Player/RotateObjectMode[/Keyboard/leftCtrl]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: b8abfd18-4d50-416c-9fef-652c7bd232e9
+    m_ActionName: RotateObject/PlayerMode[/Keyboard/leftCtrl]
+  - m_PersistentCalls:
+      m_Calls: []
+    m_ActionId: ac80dd53-3d31-4273-aefd-cd15bd2396dd
+    m_ActionName: RotateObject/ObjectRotation[/Keyboard/w,/Keyboard/s,/Keyboard/a,/Keyboard/d,/Mouse/scroll/up,/Mouse/scroll/down]
   m_NeverAutoSwitchControlSchemes: 0
   m_DefaultControlScheme: 
   m_DefaultActionMap: Player
